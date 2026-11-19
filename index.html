@@ -266,9 +266,11 @@ try { const k = localStorage.getItem('sdcw.accent'); if (k && THEMES[k]) setThem
 // When the site runs on this PC and its proxy (sdcw-proxy) is started, other websites open through it:
 // almost any site loads inside the tab, and it is shut in a box that cannot download files.
 let PROXY = null;
-const proxyReady = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
-  ? fetch(`http://${location.hostname}:9200/health`).then(r => r.json()).then(j => { if (j.ok) PROXY = `http://${location.hostname}:9200`; }).catch(() => {})
-  : Promise.resolve();
+// On a public server the file proxy.json ({"proxy": "https://..."}) says where its proxy is; hosts without one have none.
+const proxyAt = base => fetch(base + '/health').then(r => r.json()).then(j => { if (j.ok) PROXY = base; });
+const proxyReady = (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+  ? proxyAt(`http://${location.hostname}:9200`)
+  : fetch('proxy.json').then(r => r.ok ? r.json() : {}).then(j => /^https:\/\/[\w.-]+$/.test(j.proxy || '') ? proxyAt(j.proxy) : 0)).catch(() => {});
 const sameUrl = (a, b) => { try { return new URL(a).href === new URL(b).href; } catch (e) { return a === b; } };
 addEventListener('message', e => {
   if (!PROXY || e.origin !== PROXY || !e.data || e.data.sdcw !== 'nav' || !/^https?:\/\//.test(e.data.url)) return;
