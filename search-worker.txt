@@ -19,10 +19,11 @@ export default {
 
     // t = which kind of Google search: everything, images, videos or news
     const kind = { images: 'images', videos: 'videos', news: 'news' }[new URL(request.url).searchParams.get('t')] || 'search';
+    const page = Math.min(10, Math.max(1, parseInt(new URL(request.url).searchParams.get('p')) || 1));
     const r = await fetch('https://google.serper.dev/' + kind, {
       method: 'POST',
       headers: { 'X-API-KEY': env.SEARCH_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q, num: kind === 'images' ? 30 : 20 }),
+      body: JSON.stringify({ q, num: kind === 'images' ? 30 : 10, page }),
     });
     if (!r.ok) return send({ error: 'search service said ' + r.status }, 502);
     const j = await r.json();
@@ -37,7 +38,9 @@ export default {
     const ab = j.answerBox, kg = j.knowledgeGraph;
     if (ab && (ab.answer || ab.snippet)) answer = { title: ab.title || '', text: ab.answer || ab.snippet, url: ab.link || '' };
     else if (kg && kg.description) answer = { title: kg.title || '', text: kg.description, url: kg.descriptionLink || kg.website || '', thumb: kg.imageUrl || '' };
-    return send({ results, answer, kind });
+    const related = (j.relatedSearches || []).map((x) => x.query).filter(Boolean).slice(0, 8);
+    const paa = (j.peopleAlsoAsk || []).map((x) => ({ question: x.question || '', text: x.snippet || '', url: x.link || '', title: x.title || '' })).filter((x) => x.question && x.text).slice(0, 5);
+    return send({ results, answer, related, paa, kind, page });
 
   },
 };

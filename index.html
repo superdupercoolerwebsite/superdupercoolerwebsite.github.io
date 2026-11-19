@@ -47,11 +47,6 @@
   #views { flex: 1; position: relative; background: #000; }
   .view { position: absolute; inset: 0; display: none; }
   .view.on { display: block; }
-  /* Google's page is another site, so it cannot be restyled from here. On a device set to dark, Google shows its own
-     dark look. On a device set to light it is white, so its colours are flipped as a whole (white becomes the site's
-     dark, text becomes light; photos inside it get flipped too). */
-  iframe.goog { background: #141414; }
-  @media (prefers-color-scheme: light) { iframe.goog { filter: invert(0.92) hue-rotate(180deg); background: #fff; } }
   iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
   .home { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; background: radial-gradient(1200px 600px at 50% -10%, #262b45 0%, var(--bg) 60%); }
   /* no scroll bar shown: the page still scrolls with the wheel, touch and keys */
@@ -102,6 +97,75 @@
   .pic span { display: block; padding: 6px 8px; font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .more { margin-top: 22px; color: var(--dim); text-align: center; }
   .more a { color: var(--acc); }
+  /* ---- our search page ---- */
+  .srp { background: var(--bg); --link: #8fb2ff; --seen: #c39bff; }
+  .shead { display: flex; align-items: center; gap: 22px; padding: 18px 24px 10px; flex-wrap: wrap; }
+  .slogo { flex: none; padding: 0; }
+  .slogo img { display: block; height: 54px; width: auto; }
+  .sbox { flex: 1 1 320px; max-width: 690px; display: flex; align-items: center; height: 46px; border-radius: 23px; background: #1f2230; border: 1px solid #343a52; padding: 0 6px 0 20px; }
+  .sbox:focus-within { border-color: var(--acc); background: #232739; box-shadow: 0 2px 14px #0008; }
+  .sbox input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: 0; color: var(--text); font: inherit; font-size: 16px; }
+  .sbox button { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+  .sbox button:hover { background: #30364c; }
+  .sbox svg { width: 19px; height: 19px; fill: none; stroke: var(--acc); stroke-width: 2.4; stroke-linecap: round; }
+  .stabs { display: flex; gap: 4px; padding: 0 24px 0 215px; border-bottom: 1px solid #2a2e42; overflow-x: auto; scrollbar-width: none; }
+  .stabs button { padding: 10px 14px 9px; color: var(--dim); font-weight: 600; border-bottom: 3px solid transparent; white-space: nowrap; }
+  .stabs button:hover { color: var(--text); }
+  .stabs button.on { color: var(--acc); border-bottom-color: var(--acc); }
+  .sbody { display: flex; gap: 48px; align-items: flex-start; padding: 22px 24px 60px 215px; }
+  .smain { flex: 1 1 0; min-width: 0; max-width: 690px; }
+  .side { flex: 0 1 370px; min-width: 0; }
+  .side:empty { display: none; }
+  .srp .list { gap: 28px; }
+  .g { min-width: 0; }
+  .g.wide { display: flex; gap: 16px; align-items: flex-start; }
+  .g.wide > div { min-width: 0; flex: 1; }
+  .gpic { position: relative; flex: none; width: 168px; border-radius: 12px; overflow: hidden; background: #1c1e28; }
+  .gpic img { display: block; width: 100%; height: 96px; object-fit: cover; }
+  .gpic em { position: absolute; right: 6px; bottom: 6px; padding: 1px 6px; border-radius: 6px; background: #000c; color: #fff; font-style: normal; font-size: 12px; }
+  .gsite { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; margin-bottom: 6px; min-width: 0; }
+  .gsite > span { display: flex; flex-direction: column; min-width: 0; }
+  .gsite b { font-weight: 500; font-size: 14px; color: var(--text); }
+  .gsite i { font-style: normal; font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fav { width: 28px; height: 28px; border-radius: 50%; background: #262a3a; padding: 5px; flex: none; }
+  .fav.none { display: grid; place-items: center; padding: 0; color: var(--dim); font-weight: 800; font-size: 13px; }
+  .gt { display: inline-block; font-size: 20px; line-height: 1.3; color: var(--link); text-decoration: none; text-align: left; padding: 0; overflow-wrap: anywhere; }
+  .gt:hover { text-decoration: underline; }
+  a.gt:visited { color: var(--seen); }
+  .g p { margin: 4px 0 0; color: #c3c8dc; line-height: 1.58; overflow-wrap: anywhere; }
+  .when { color: var(--dim); }
+  .srp .ans { display: block; padding: 18px; border-radius: 16px; background: #1b1e2b; border: 1px solid #2f3550; }
+  .srp .ans img { display: block; width: 100%; height: auto; max-height: 220px; object-fit: cover; border-radius: 12px; margin-bottom: 14px; }
+  .srp .ans b { display: block; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .srp .ans a { color: var(--link); font-size: 13px; }
+  .paa h3, .rel h3 { margin: 0 0 10px; font-size: 20px; font-weight: 600; }
+  .paa details { border-top: 1px solid #2a2e42; padding: 12px 0; }
+  .paa details:last-child { border-bottom: 1px solid #2a2e42; }
+  .paa summary { cursor: pointer; font-size: 16px; }
+  .paa p { margin: 10px 0 6px; color: #c3c8dc; }
+  .paa a { color: var(--link); font-size: 13px; }
+  .rel { display: flex; flex-wrap: wrap; gap: 10px; }
+  .rel h3 { flex: 1 0 100%; }
+  .rel button { padding: 11px 18px; border-radius: 22px; background: #1f2230; border: 1px solid #2f3550; text-align: left; }
+  .rel button:hover { border-color: var(--acc); }
+  .srp .list.pics { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+  .srp .pic { border: 0; background: none; border-radius: 0; }
+  .srp .pic img { height: 150px; border-radius: 12px; }
+  .srp .pic span { padding: 6px 2px 0; color: var(--text); font-size: 13px; }
+  .srp .pic i { display: block; padding: 0 2px; font-style: normal; font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pager { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 36px; color: var(--dim); }
+  .pager button { padding: 9px 18px; border-radius: 20px; background: #1f2230; border: 1px solid #2f3550; color: var(--link); font-weight: 600; }
+  .pager button:hover { border-color: var(--acc); }
+  .srp:has(.list.pics) .smain { max-width: none; }
+  @media (max-width: 1000px) {
+    .shead { padding: 14px 16px 8px; gap: 12px; }
+    .slogo img { height: 40px; }
+    .stabs { padding: 0 12px; }
+    .sbody { flex-direction: column-reverse; gap: 22px; padding: 18px 16px 50px; }
+    .side { flex: none; width: 100%; }
+    .gpic { width: 120px; }
+    .gpic img { height: 72px; }
+  }
   .empty { text-align: center; color: var(--dim); padding: 40px 0; grid-column: 1 / -1; }
 </style>
 </head>
@@ -115,7 +179,7 @@
     <button class="nav" id="homeBtn" title="Home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></button>
     <div id="addrWrap">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
-      <input id="addr" spellcheck="false" autocomplete="off" placeholder="Search Google">
+      <input id="addr" spellcheck="false" autocomplete="off" placeholder="Search the web">
       <div id="sug"></div>
     </div>
     <button class="nav" id="full" title="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -187,13 +251,7 @@ function render(t) {
     t.btn.innerHTML = `<span class="dot" style="background:${grad(g)}"></span><span class="name">${esc(g.name)}</span><span class="x" title="Close tab">&times;</span>`;
   } else if (w.startsWith('search:')) {
     const q = w.slice(7);
-    // Google itself, inside the tab (its own embeddable mode), asked for its dark look so it sits with the site's colours.
-    // (Our own results page, results(), stays in the code but is not used.)
-    const f = document.createElement('iframe');
-    f.className = 'goog';
-    f.src = 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(q);
-    f.referrerPolicy = 'no-referrer';
-    t.view.appendChild(f);
+    t.view.appendChild(results(t, q));
     t.btn.innerHTML = `<span class="dot look"></span><span class="name">${esc(q)}</span><span class="x" title="Close tab">&times;</span>`;
   } else if (w.startsWith('wiki:')) {
     const title = w.slice(5), f = document.createElement('iframe');
@@ -253,61 +311,73 @@ function home(t) {
   return el;
 }
 
-// ---------- looking something up ----------
-// With the search server set (search.json), results come from the whole web through it. Without it, or if it fails,
-// answers come straight from Wikipedia's public search. Your own games that match are always listed first.
+// ---------- our own search page ----------
+// The familiar search-engine layout (logo + box, tabs, results, side panel), in this site's colours and with its logo.
+// The results come from Google through the search server (search.json). Without the server it falls back to Wikipedia.
 let SEARCH_API = '';
 function results(t, q) {
   const el = document.createElement('div');
-  el.className = 'home';
-  el.innerHTML = `<div class="homeIn res"><h2 class="rq">${esc(q)}</h2><div class="kinds"><button data-k="" class="on">All</button><button data-k="images">Images</button><button data-k="videos">Videos</button><button data-k="news">News</button></div><div class="list"><div class="empty">Looking that up...</div></div></div>`;
-  const list = el.querySelector('.list');
-  const row = (pic, title, text, tag, open) => {
-    const b = document.createElement('button');
-    b.className = 'r';
-    b.innerHTML = `${pic}<span class="rt"><b>${esc(title)}</b><em>${esc(tag)}</em><span>${esc(text)}</span></span>`;
-    b.onclick = e => { if (e.ctrlKey || e.metaKey) newTab(open); else go(t, open); };
-    b.onauxclick = e => { if (e.button === 1) { const was = cur; newTab(open); show(was); } };
-    return b;
-  };
-  const mine = [];
-  const put = rows => { list.innerHTML = ''; for (const b of mine) list.appendChild(b); for (const b of rows) list.appendChild(b); };
-  const none = msg => list.insertAdjacentHTML('beforeend', `<div class="empty">${msg}</div>`);
-  // a result from the web is a real link: it opens the real site in a new browser tab
-  const link = x => {
-    const a = document.createElement('a');
-    a.className = 'r'; a.href = x.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
-    a.innerHTML = `${x.thumb ? `<img class="rp" src="${esc(x.thumb)}" alt="" referrerpolicy="no-referrer">` : `<span class="rp none">${esc((x.site || x.title || '?').replace(/^www\./, '')[0].toUpperCase())}</span>`}<span class="rt"><b>${esc(x.title)}</b><em>${esc(x.site || x.url)}</em><span>${esc(x.text)}</span></span>`;
-    return a;
-  };
+  el.className = 'home srp';
+  el.innerHTML = `<div class="shead"><button class="slogo" title="Home"><img src="logo.png" alt="superdupercoolerwebsite"></button>
+      <form class="sbox"><input value="${esc(q)}" spellcheck="false" autocomplete="off" aria-label="Search"><button type="submit" title="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg></button></form></div>
+    <div class="stabs"><button data-k="" class="on">All</button><button data-k="images">Images</button><button data-k="videos">Videos</button><button data-k="news">News</button></div>
+    <div class="sbody"><div class="smain"><div class="list"></div><div class="pager"></div></div><aside class="side"></aside></div>`;
+  const list = el.querySelector('.list'), side = el.querySelector('.side'), pager = el.querySelector('.pager'), tabsRow = el.querySelector('.stabs');
+  let kind = '', page = 1;
+  const http = u => /^https?:\/\//.test(u || '');
+  const crumb = u => { try { const x = new URL(u); return x.hostname.replace(/^www\./, '') + x.pathname.split('/').filter(Boolean).slice(0, 2).map(p => ' › ' + decodeURIComponent(p).slice(0, 24)).join(''); } catch (e) { return u; } };
+  const none = msg => { list.innerHTML = `<div class="empty">${msg}</div>`; };
+  const ext = (cls, href, html) => `<a class="${cls}" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${html}</a>`;
+  el.querySelector('.slogo').onclick = () => go(t, 'home');
+  el.querySelector('.sbox').onsubmit = e => { e.preventDefault(); const v = e.target.querySelector('input').value.trim(); if (v && v !== q) go(t, 'search:' + v); };
+
   const wiki = () => {
+    tabsRow.hidden = true;
     const url = 'https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=12&prop=pageimages%7Cextracts&exintro=1&explaintext=1&exsentences=2&exlimit=12&piprop=thumbnail&pithumbsize=160&format=json&origin=*&gsrsearch=' + encodeURIComponent(q);
     return fetch(url).then(r => r.json()).then(j => {
       const pages = Object.values((j.query && j.query.pages) || {}).sort((a, b) => a.index - b.index);
-      put(pages.map(pg => row(pg.thumbnail ? `<img class="rp" src="${esc(pg.thumbnail.source)}" alt="">` : `<span class="rp none">${esc(pg.title[0])}</span>`, pg.title, pg.extract || '', 'Wikipedia', 'wiki:' + pg.title)));
-      if (!mine.length && !pages.length) none(`Nothing found for "${esc(q)}". Try other words, or one of the search sites below.`);
-    }).catch(() => { put([]); none('Could not reach the look-up service. Check your connection, or use one of the search sites below.'); });
+      if (!pages.length) return none(`Nothing found for "${esc(q)}".`);
+      list.innerHTML = '';
+      for (const pg of pages) {
+        const d = document.createElement('div');
+        d.className = 'g';
+        d.innerHTML = `<span class="gsite"><span class="fav none">W</span><span><b>Wikipedia</b><i>en.wikipedia.org</i></span></span><button class="gt">${esc(pg.title)}</button><p>${esc(pg.extract || '')}</p>`;
+        d.querySelector('.gt').onclick = () => go(t, 'wiki:' + pg.title);
+        list.appendChild(d);
+      }
+    }).catch(() => none('Could not reach the search service. Check your connection.'));
   };
-  let kind = '';
-  const web = () => fetch(SEARCH_API + (SEARCH_API.includes('?') ? '&' : '?') + 'q=' + encodeURIComponent(q) + (kind ? '&t=' + kind : '')).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => {
-    if (!j.results) throw 0;
-    const ok = j.results.filter(x => /^https?:\/\//.test(x.url));
-    list.classList.toggle('pics', kind === 'images');
-    if (kind === 'images') {
-      put(ok.filter(x => x.thumb).map(x => { const a = document.createElement('a'); a.className = 'pic'; a.href = x.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.title = x.title; a.innerHTML = `<img src="${esc(x.thumb)}" alt="${esc(x.title)}" loading="lazy" referrerpolicy="no-referrer"><span>${esc(x.site)}</span>`; return a; }));
-    } else {
-      put(ok.map(x => link({ ...x, site: (x.site || '') + (x.extra ? '  ·  ' + x.extra : '') })));
-      const an = j.answer;
-      if (an && an.text) list.insertAdjacentHTML('afterbegin', `<div class="ans">${an.thumb ? `<img src="${esc(an.thumb)}" alt="" referrerpolicy="no-referrer">` : ''}<div>${an.title ? `<b>${esc(an.title)}</b>` : ''}<p>${esc(an.text)}</p>${/^https?:\/\//.test(an.url || '') ? `<a href="${esc(an.url)}" target="_blank" rel="noopener noreferrer">${esc(an.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a>` : ''}</div></div>`);
-    }
-    if (!ok.length) none(`Nothing found for "${esc(q)}".`);
-  });
-  const run = () => { list.innerHTML = '<div class="empty">Searching...</div>'; list.classList.remove('pics'); if (SEARCH_API) web().catch(kind ? () => { put([]); none('Could not get those results right now.'); } : wiki); else wiki(); };
-  const kinds = el.querySelector('.kinds');
-  kinds.hidden = !SEARCH_API;
-  kinds.onclick = e => { const b = e.target.closest('button'); if (!b || b.dataset.k === kind) return; kind = b.dataset.k; for (const o of kinds.children) o.classList.toggle('on', o === b); run(); };
-  run();
 
+  const web = () => fetch(SEARCH_API + (SEARCH_API.includes('?') ? '&' : '?') + 'q=' + encodeURIComponent(q) + (kind ? '&t=' + kind : '') + (page > 1 ? '&p=' + page : '')).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => {
+    if (!j.results) throw 0;
+    const ok = j.results.filter(x => http(x.url));
+    list.className = 'list' + (kind === 'images' ? ' pics' : '');
+    side.innerHTML = ''; pager.innerHTML = '';
+    if (!ok.length) return none(page > 1 ? 'No more results.' : `Nothing found for "${esc(q)}".`);
+    const fav = x => `<img class="fav" src="https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(x.site)}" alt="" referrerpolicy="no-referrer">`;
+    if (kind === 'images') {
+      list.innerHTML = ok.filter(x => x.thumb).map(x => ext('pic', x.url, `<img src="${esc(x.thumb)}" alt="${esc(x.title)}" loading="lazy" referrerpolicy="no-referrer"><span>${esc(x.title)}</span><i>${esc(x.site)}</i>`)).join('');
+    } else {
+      list.innerHTML = ok.map(x => `<div class="g${x.thumb && kind ? ' wide' : ''}">${x.thumb && kind ? ext('gpic', x.url, `<img src="${esc(x.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer">${x.extra && kind === 'videos' ? `<em>${esc(x.extra)}</em>` : ''}`) : ''}<div>${ext('gsite', x.url, `${fav(x)}<span><b>${esc(x.site)}</b><i>${esc(crumb(x.url))}</i></span>`)}${ext('gt', x.url, esc(x.title))}<p>${x.extra && kind !== 'videos' ? `<span class="when">${esc(x.extra)} — </span>` : ''}${esc(x.text)}</p></div></div>`).join('');
+      // the short answer: beside the results when there is room, above them on a narrow screen
+      const an = j.answer;
+      if (an && an.text && page === 1) side.innerHTML = `<div class="ans">${an.thumb ? `<img src="${esc(an.thumb)}" alt="" referrerpolicy="no-referrer">` : ''}${an.title ? `<b>${esc(an.title)}</b>` : ''}<p>${esc(an.text)}</p>${http(an.url) ? ext('', an.url, esc(crumb(an.url))) : ''}</div>`;
+      if (j.paa && j.paa.length && page === 1) list.insertAdjacentHTML('beforeend', `<div class="paa"><h3>People also ask</h3>${j.paa.map(p => `<details><summary>${esc(p.question)}</summary><p>${esc(p.text)}</p>${http(p.url) ? ext('', p.url, esc(p.title || crumb(p.url))) : ''}</details>`).join('')}</div>`);
+      if (j.related && j.related.length) {
+        const r = document.createElement('div');
+        r.className = 'rel';
+        r.innerHTML = `<h3>Related searches</h3>` + j.related.map(x => `<button>${esc(x)}</button>`).join('');
+        r.onclick = e => { const b = e.target.closest('button'); if (b) go(t, 'search:' + b.textContent); };
+        list.appendChild(r);
+      }
+    }
+    pager.innerHTML = `${page > 1 ? '<button data-d="-1">‹ Previous</button>' : ''}<span>Page ${page}</span><button data-d="1">Next ›</button>`;
+  });
+
+  const run = () => { list.className = 'list'; list.innerHTML = '<div class="empty">Searching...</div>'; side.innerHTML = ''; pager.innerHTML = ''; el.scrollTop = 0; if (SEARCH_API) web().catch(kind || page > 1 ? () => none('Could not get those results right now.') : wiki); else wiki(); };
+  tabsRow.onclick = e => { const b = e.target.closest('button'); if (!b || b.dataset.k === kind) return; kind = b.dataset.k; page = 1; for (const o of tabsRow.children) o.classList.toggle('on', o === b); run(); };
+  pager.onclick = e => { const b = e.target.closest('button'); if (!b) return; page = Math.max(1, page + +b.dataset.d); run(); };
+  run();
   return el;
 }
 
@@ -315,7 +385,7 @@ function results(t, q) {
 function suggest() {
   const q = addr.value.trim();
   // the top bar only looks things up (games are searched with the box on the home page)
-  shown = q && !/^arcade:/i.test(q) ? [{ where: 'search:' + q, html: `<span class="dot look"></span><b>${esc(q)}</b><span>Search Google</span>` }] : [];
+  shown = q && !/^arcade:/i.test(q) ? [{ where: 'search:' + q, html: `<span class="dot look"></span><b>${esc(q)}</b><span>Search the web</span>` }] : [];
   sel = 0;
   sug.innerHTML = shown.map((o, i) => `<button class="s${i === 0 ? ' on' : ''}" data-i="${i}">${o.html}</button>`).join('');
   sug.classList.toggle('show', shown.length > 0);
