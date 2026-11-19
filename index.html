@@ -68,6 +68,20 @@
   .art::before { content: attr(data-l); position: absolute; right: -8px; top: -34px; font-size: 150px; font-weight: 900; color: #fff2; line-height: 1; }
   .art span { font-size: 22px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px #0008; position: relative; }
   .card p { margin: 0; padding: 12px 14px 14px; color: var(--dim); min-height: 66px; }
+  .dot.look { background: #12131a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237c9cff' stroke-width='2.6' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6'/%3E%3Cpath d='M16 16l4 4'/%3E%3C/svg%3E") center/70% no-repeat; }
+  .res { max-width: 820px; padding-top: 28px; }
+  .rq { margin: 0 0 18px; font-size: 26px; font-weight: 800; overflow-wrap: anywhere; }
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .r { display: flex; gap: 14px; align-items: flex-start; width: 100%; text-align: left; padding: 12px; border-radius: 14px; background: #1c1e28; border: 1px solid #2a2d3c; }
+  .r:hover, .r:focus-visible { border-color: var(--acc); outline: 0; }
+  .rp { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; flex: none; display: grid; place-items: center; }
+  .rp.none { background: #262a3a; color: var(--dim); font-size: 28px; font-weight: 800; }
+  .rt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .rt b { font-size: 17px; font-weight: 700; color: var(--acc); }
+  .rt em { font-style: normal; font-size: 12px; color: var(--dim); }
+  .rt span { color: #c9cde0; overflow-wrap: anywhere; }
+  .more { margin-top: 22px; color: var(--dim); text-align: center; }
+  .more a { color: var(--acc); }
   .empty { text-align: center; color: var(--dim); padding: 40px 0; grid-column: 1 / -1; }
 </style>
 </head>
@@ -81,7 +95,7 @@
     <button class="nav" id="homeBtn" title="Home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></button>
     <div id="addrWrap">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
-      <input id="addr" spellcheck="false" autocomplete="off" placeholder="Search games">
+      <input id="addr" spellcheck="false" autocomplete="off" placeholder="Search games or look anything up">
       <div id="sug"></div>
     </div>
     <button class="nav" id="full" title="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -151,6 +165,15 @@ function render(t) {
     f.src = `g/${g.id}/${g.page}`;
     t.view.appendChild(f);
     t.btn.innerHTML = `<span class="dot" style="background:${grad(g)}"></span><span class="name">${esc(g.name)}</span><span class="x" title="Close tab">&times;</span>`;
+  } else if (w.startsWith('search:')) {
+    const q = w.slice(7);
+    t.view.appendChild(results(t, q));
+    t.btn.innerHTML = `<span class="dot look"></span><span class="name">${esc(q)}</span><span class="x" title="Close tab">&times;</span>`;
+  } else if (w.startsWith('wiki:')) {
+    const title = w.slice(5), f = document.createElement('iframe');
+    f.src = 'https://en.wikipedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
+    t.view.appendChild(f);
+    t.btn.innerHTML = `<span class="dot look"></span><span class="name">${esc(title)}</span><span class="x" title="Close tab">&times;</span>`;
   } else {
     t.view.appendChild(home(t));
     t.btn.innerHTML = `<img class="dot" src="icon.png" alt=""><span class="name">Home</span><span class="x" title="Close tab">&times;</span>`;
@@ -159,10 +182,10 @@ function render(t) {
 function chrome() {
   if (!cur) return;
   const w = here(cur);
-  if (document.activeElement !== addr) addr.value = w === 'home' ? '' : 'arcade://' + w;
+  if (document.activeElement !== addr) addr.value = w === 'home' ? '' : w.startsWith('search:') ? w.slice(7) : w.startsWith('wiki:') ? w.slice(5) : 'arcade://' + w;
   $('#back').disabled = cur.at <= 0;
   $('#fwd').disabled = cur.at >= cur.hist.length - 1;
-  document.title = (byId(w) ? byId(w).name + ' - ' : '') + 'superdupercoolerwebsite';
+  document.title = (byId(w) ? byId(w).name + ' - ' : w.includes(':') ? w.slice(w.indexOf(':') + 1) + ' - ' : '') + 'superdupercoolerwebsite';
 }
 // keys go to the game as soon as it is on screen
 function focusPage() {
@@ -199,14 +222,47 @@ function home(t) {
   return el;
 }
 
+// ---------- looking something up ----------
+// Answers come straight from Wikipedia's public search (no Google, no key, no account). Your own games that match are listed first.
+function results(t, q) {
+  const el = document.createElement('div');
+  el.className = 'home';
+  el.innerHTML = `<div class="homeIn res"><h2 class="rq">${esc(q)}</h2><div class="list"><div class="empty">Looking that up...</div></div>
+    <div class="more">Not what you wanted? Open this search in a new tab on <a target="_blank" rel="noopener" href="https://duckduckgo.com/?q=${encodeURIComponent(q)}">DuckDuckGo</a>, <a target="_blank" rel="noopener" href="https://www.bing.com/search?q=${encodeURIComponent(q)}">Bing</a> or <a target="_blank" rel="noopener" href="https://search.brave.com/search?q=${encodeURIComponent(q)}">Brave</a>.</div></div>`;
+  const list = el.querySelector('.list');
+  const row = (pic, title, text, tag, open) => {
+    const b = document.createElement('button');
+    b.className = 'r';
+    b.innerHTML = `${pic}<span class="rt"><b>${esc(title)}</b><em>${esc(tag)}</em><span>${esc(text)}</span></span>`;
+    b.onclick = e => { if (e.ctrlKey || e.metaKey) newTab(open); else go(t, open); };
+    b.onauxclick = e => { if (e.button === 1) { const was = cur; newTab(open); show(was); } };
+    return b;
+  };
+  const mine = search(q).map(g => row(`<span class="rp" style="background:${g.art ? `center/cover url('${g.art}')` : grad(g)}"></span>`, g.name, g.about, 'Game on this site', g.id));
+  const url = 'https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=12&prop=pageimages%7Cextracts&exintro=1&explaintext=1&exsentences=2&exlimit=12&piprop=thumbnail&pithumbsize=160&format=json&origin=*&gsrsearch=' + encodeURIComponent(q);
+  fetch(url).then(r => r.json()).then(j => {
+    const pages = Object.values((j.query && j.query.pages) || {}).sort((a, b) => a.index - b.index);
+    list.innerHTML = '';
+    for (const b of mine) list.appendChild(b);
+    for (const pg of pages) list.appendChild(row(pg.thumbnail ? `<img class="rp" src="${esc(pg.thumbnail.source)}" alt="">` : `<span class="rp none">${esc(pg.title[0])}</span>`, pg.title, pg.extract || '', 'Wikipedia', 'wiki:' + pg.title));
+    if (!mine.length && !pages.length) list.innerHTML = `<div class="empty">Nothing found for "${esc(q)}". Try other words, or one of the search sites below.</div>`;
+  }).catch(() => {
+    list.innerHTML = '';
+    for (const b of mine) list.appendChild(b);
+    list.insertAdjacentHTML('beforeend', `<div class="empty">Could not reach the look-up service. Check your connection, or use one of the search sites below.</div>`);
+  });
+  return el;
+}
+
 // ---------- the address / search bar ----------
 function suggest() {
   const q = addr.value.trim();
-  shown = search(q).slice(0, 7); sel = 0;
-  sug.innerHTML = shown.length
-    ? shown.map((g, i) => `<button class="s${i === 0 ? ' on' : ''}" data-i="${i}"><span class="dot" style="background:${grad(g)}"></span><b>${esc(g.name)}</b><span>${esc(g.about)}</span></button>`).join('')
-    : `<div class="s none">No game matches "${esc(q)}"</div>`;
-  sug.classList.add('show');
+  // what Enter can open: games that match, then looking the words up
+  shown = search(q).slice(0, 5).map(g => ({ where: g.id, html: `<span class="dot" style="background:${g.art ? `center/cover url('${g.art}')` : grad(g)}"></span><b>${esc(g.name)}</b><span>${esc(g.about)}</span>` }));
+  if (q && !/^arcade:/i.test(q)) shown.push({ where: 'search:' + q, html: `<span class="dot look"></span><b>${esc(q)}</b><span>Look this up</span>` });
+  sel = 0;
+  sug.innerHTML = shown.map((o, i) => `<button class="s${i === 0 ? ' on' : ''}" data-i="${i}">${o.html}</button>`).join('');
+  sug.classList.toggle('show', shown.length > 0);
 }
 function mark() { sug.querySelectorAll('.s').forEach((b, i) => b.classList.toggle('on', i === sel)); }
 function hideSug() { sug.classList.remove('show'); }
@@ -219,13 +275,13 @@ addr.onkeydown = e => {
   else if (e.key === 'Escape') { addr.blur(); hideSug(); focusPage(); }
   else if (e.key === 'Enter') {
     const q = addr.value.trim().toLowerCase();
-    const where = q === '' || q === 'home' || q === 'arcade://home' ? 'home' : shown[sel] ? shown[sel].id : null;
+    const where = q === '' || q === 'home' || q === 'arcade://home' ? 'home' : shown[sel] ? shown[sel].where : null;
     if (where) { addr.blur(); hideSug(); if (here(cur) !== where) go(cur, where); else focusPage(); }
   }
 };
 sug.onmousedown = e => {
   const b = e.target.closest('.s[data-i]'); if (!b) return;
-  e.preventDefault(); addr.blur(); go(cur, shown[+b.dataset.i].id);
+  e.preventDefault(); addr.blur(); go(cur, shown[+b.dataset.i].where);
 };
 
 // ---------- buttons ----------
