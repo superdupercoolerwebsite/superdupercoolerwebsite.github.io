@@ -194,6 +194,30 @@
   .wbar em { flex: 1; min-width: 0; font-style: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .wbar a { flex: none; padding: 5px 12px; border-radius: 14px; background: var(--acc); color: #0b0c12; font-weight: 700; text-decoration: none; }
 
+  /* ---- AI assistant panel ---- */
+  #ai { position: fixed; top: 0; right: 0; bottom: 0; width: min(380px, 100%); background: var(--bg2); border-left: 1px solid var(--line); display: flex; flex-direction: column; transform: translateX(100%); transition: transform .22s ease; z-index: 45; box-shadow: -14px 0 44px #0008; }
+  #ai.open { transform: none; }
+  .ai-head { display: flex; align-items: center; gap: 10px; padding: 14px; border-bottom: 1px solid var(--line); }
+  .ai-head b { flex: 1; font-size: 15px; }
+  .ai-dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, var(--acc), var(--acc2)); box-shadow: 0 0 10px var(--glow); flex: none; }
+  .ai-head button { width: 30px; height: 30px; border-radius: 9px; color: var(--dim); display: grid; place-items: center; font-size: 17px; }
+  .ai-head button:hover { background: var(--panel2); color: var(--text); }
+  .ai-log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .ai-hello { color: var(--dim); text-align: center; margin: auto; max-width: 250px; font-size: 14px; line-height: 1.6; }
+  .ai-hello b { color: var(--text); }
+  .ai-msg { max-width: 86%; padding: 10px 14px; border-radius: 16px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
+  .ai-msg.user { align-self: flex-end; background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #0b0c12; font-weight: 500; border-bottom-right-radius: 5px; }
+  .ai-msg.bot { align-self: flex-start; background: var(--panel); border: 1px solid var(--line); border-bottom-left-radius: 5px; }
+  .ai-typing { display: flex; gap: 5px; align-items: center; }
+  .ai-typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); animation: blink 1.2s infinite; }
+  .ai-typing span:nth-child(2) { animation-delay: .2s; } .ai-typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
+  .ai-in { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
+  .ai-in textarea { flex: 1; resize: none; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 11px 14px; color: var(--text); font: inherit; outline: 0; max-height: 120px; }
+  .ai-in textarea:focus { border-color: var(--acc); box-shadow: 0 0 0 3px var(--glow); }
+  .ai-in button { width: 44px; flex: none; border-radius: 13px; background: linear-gradient(135deg, var(--acc), var(--acc2)); display: grid; place-items: center; }
+  .ai-in svg { width: 19px; height: 19px; fill: #0b0c12; }
+
   @media (prefers-reduced-motion: reduce) { .heroGlow { animation: none; } * { transition: none !important; } }
 </style>
 </head>
@@ -203,6 +227,7 @@
     <button class="railbtn" id="rHome" title="Home"><img src="icon.png" alt="Home"></button>
     <button class="railbtn" id="rGames" title="Games"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r=".6" fill="currentColor"/><circle cx="18" cy="13.5" r=".6" fill="currentColor"/></svg></button>
     <button class="railbtn" id="rSearch" title="Search the web"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg></button>
+    <button class="railbtn" id="rAI" title="AI assistant"><svg viewBox="0 0 24 24"><path d="M21 11.5a8 8 0 0 1-11.6 7.1L4 20l1.4-5A8 8 0 1 1 21 11.5z"/><path d="M12 8.3l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z" fill="currentColor" stroke="none"/></svg></button>
     <div class="railsp"></div>
     <button class="railbtn" id="rTheme" title="Theme colour"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="8" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="10" r="1.2" fill="currentColor" stroke="none"/></svg></button>
     <button class="railbtn" id="full" title="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -526,9 +551,50 @@ $('#rTheme').onclick = e => { e.stopPropagation(); pop.classList.toggle('show');
 pop.onclick = e => { const b = e.target.closest('button[data-k]'); if (b) { setTheme(b.dataset.k); pop.classList.remove('show'); } };
 addEventListener('click', e => { if (!pop.contains(e.target) && e.target !== $('#rTheme') && !$('#rTheme').contains(e.target)) pop.classList.remove('show'); });
 
+// ---------- AI assistant (free: no account, no key, no server; uses Pollinations' public API) ----------
+const ai = document.createElement('div'); ai.id = 'ai';
+ai.innerHTML = `<div class="ai-head"><span class="ai-dot"></span><b>Assistant</b><button class="ai-clear" title="New chat">&#x21bb;</button><button class="ai-x" title="Close">&times;</button></div>
+  <div class="ai-log"></div>
+  <form class="ai-in"><textarea rows="1" placeholder="Ask me anything…" spellcheck="false"></textarea><button type="submit" title="Send"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-6-7-2z"/></svg></button></form>`;
+document.body.appendChild(ai);
+const aiLog = ai.querySelector('.ai-log'), aiBox = ai.querySelector('textarea');
+const SYS = { role: 'system', content: "You are the friendly assistant built into superdupercoolerwebsite, a custom web browser made by its owner. Keep answers clear and fairly short unless asked for more. Be helpful and warm. Do not mention which AI model or company you are." };
+let aiMsgs = [], aiBusy = false;
+function aiRender() {
+  const rows = aiMsgs.filter(m => m.role !== 'system');
+  aiLog.innerHTML = (rows.length ? rows.map(m => `<div class="ai-msg ${m.role === 'user' ? 'user' : 'bot'}">${esc(m.content)}</div>`).join('')
+    : `<div class="ai-hello"><b>Hi! I'm your assistant.</b><br>Ask me anything — it's free, with no account.</div>`)
+    + (aiBusy ? '<div class="ai-msg bot ai-typing"><span></span><span></span><span></span></div>' : '');
+  aiLog.scrollTop = aiLog.scrollHeight;
+}
+function aiOpen(v) { const open = v === undefined ? !ai.classList.contains('open') : v; ai.classList.toggle('open', open); $('#rAI').classList.toggle('on', open); if (open) aiBox.focus(); }
+async function aiSend(text) {
+  text = text.trim(); if (!text || aiBusy) return;
+  aiMsgs.push({ role: 'user', content: text }); aiBusy = true; aiBox.value = ''; aiBox.style.height = ''; aiRender();
+  try {
+    const r = await fetch('https://text.pollinations.ai/openai', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'openai', messages: [SYS, ...aiMsgs] }) });
+    if (!r.ok) throw new Error('status ' + r.status);
+    const j = await r.json();
+    const out = ((j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '').trim();
+    aiMsgs.push({ role: 'assistant', content: out || 'Sorry, I had nothing to say there. Try asking again.' });
+  } catch (e) {
+    aiMsgs.push({ role: 'assistant', content: "I couldn't reach the assistant just now. Check your internet — some networks (like hotel Wi-Fi) block it." });
+  }
+  aiBusy = false; aiRender();
+}
+ai.querySelector('.ai-in').onsubmit = e => { e.preventDefault(); aiSend(aiBox.value); };
+aiBox.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); aiSend(aiBox.value); } };
+aiBox.oninput = () => { aiBox.style.height = 'auto'; aiBox.style.height = Math.min(120, aiBox.scrollHeight) + 'px'; };
+ai.querySelector('.ai-x').onclick = () => aiOpen(false);
+ai.querySelector('.ai-clear').onclick = () => { aiMsgs = []; aiRender(); aiBox.focus(); };
+$('#rAI').onclick = () => aiOpen();
+aiRender();
+
 addEventListener('keydown', e => {
-  if ((e.ctrlKey && e.key.toLowerCase() === 'l') || (e.key === '/' && !/INPUT/.test(document.activeElement.tagName))) { e.preventDefault(); addr.focus(); }
+  if ((e.ctrlKey && e.key.toLowerCase() === 'l') || (e.key === '/' && !/INPUT|TEXTAREA/.test(document.activeElement.tagName))) { e.preventDefault(); addr.focus(); }
   if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 't') { e.preventDefault(); newTab(); addr.focus(); }
+  if (e.ctrlKey && e.key.toLowerCase() === 'j') { e.preventDefault(); aiOpen(); }
 });
 
 fetch('games.json', { cache: 'no-cache' }).then(r => r.json()).then(list => {
