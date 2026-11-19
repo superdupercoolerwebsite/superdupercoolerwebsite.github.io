@@ -1,5 +1,5 @@
 [
-  { "id": "dirt-rally", "name": "Dirt Rally", "folder": "blackfir-rally", "page": "index.html", "about": "Cockpit-only rally through a dark fir forest.", "tags": "car rally dirt forest cockpit driving pacenotes", "colors": ["#4f7a5a", "#14241c"] },
-  { "id": "retro-hockey", "name": "Retro Hockey", "folder": "retro-hockey", "page": "game.html", "about": "Pixel-art arcade hockey.", "tags": "hockey sports pixel retro arcade", "colors": ["#9ad1ff", "#274690"] },
-  { "id": "dune-rc", "name": "Dune RC", "folder": "dune-rc", "page": "index.html", "about": "RC car tricks sandbox in real desert dunes.", "tags": "car rc sand desert tricks jumps driving sandbox", "colors": ["#e9b872", "#b5651d"] }
+  {"id": "dirt-rally", "name": "Dirt Rally", "folder": "blackfir-rally", "page": "index.html", "about": "Cockpit-only rally through a dark fir forest.", "tags": "car rally dirt forest cockpit driving pacenotes", "colors": ["#4f7a5a", "#14241c"]},
+  {"id": "retro-hockey", "name": "Retro Hockey", "folder": "retro-hockey", "page": "game.html", "about": "Pixel-art arcade hockey.", "tags": "hockey sports pixel retro arcade", "colors": ["#9ad1ff", "#274690"]},
+  {"id": "dune-rc", "name": "Dune RC", "folder": "dune-rc", "page": "index.html", "about": "RC car tricks sandbox in real desert dunes.", "tags": "car rc sand desert tricks jumps driving sandbox", "colors": ["#e9b872", "#b5651d"], "art": "art/dune-rc.jpg"}
 ]

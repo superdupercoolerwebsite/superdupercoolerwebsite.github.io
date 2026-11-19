@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>superdupercoolerwebsite</title>
-<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="icon" type="image/png" href="icon.png">
 <style>
   :root { --bg: #14151a; --bar: #1d1f27; --tab: #272a35; --line: #32364a; --text: #e8eaf2; --dim: #8f95ab; --acc: #7c9cff; }
   * { box-sizing: border-box; }
@@ -50,7 +50,7 @@
   iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
   .home { overflow-y: auto; background: radial-gradient(1200px 600px at 50% -10%, #262b45 0%, var(--bg) 60%); }
   .homeIn { max-width: 1120px; margin: 0 auto; padding: 40px 24px 60px; }
-  .mark { display: block; width: 96px; height: 96px; margin: 0 auto 14px; filter: drop-shadow(0 10px 24px #0008); }
+  .mark { display: block; width: min(640px, 100%); height: auto; margin: 0 auto 4px; filter: drop-shadow(0 10px 24px #0008); image-rendering: auto; }
   .logo { text-align: center; font-size: clamp(22px, 7.2vw, 44px); font-weight: 800; letter-spacing: -1.5px; margin: 0; }
   .logo i { font-style: normal; background: linear-gradient(90deg, #5b8cff, #8b5cf6, #ff5fa2); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .sub { text-align: center; color: var(--dim); margin: 6px 0 26px; }
@@ -59,7 +59,9 @@
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
   .card { display: block; text-align: left; border-radius: 16px; overflow: hidden; background: #1c1e28; border: 1px solid #2a2d3c; transition: transform .12s, border-color .12s, box-shadow .12s; }
   .card:hover, .card:focus-visible { transform: translateY(-4px); border-color: var(--acc); box-shadow: 0 12px 30px #0008; outline: 0; }
-  .art { height: 132px; display: flex; align-items: flex-end; padding: 12px 14px; position: relative; overflow: hidden; }
+  .art.pic { background-size: cover; background-position: center; }
+  .art.pic::before { content: none; }
+  .art { aspect-ratio: 16 / 9; display: flex; align-items: flex-end; padding: 12px 14px; position: relative; overflow: hidden; }
   .art::before { content: attr(data-l); position: absolute; right: -8px; top: -34px; font-size: 150px; font-weight: 900; color: #fff2; line-height: 1; }
   .art span { font-size: 22px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px #0008; position: relative; }
   .card p { margin: 0; padding: 12px 14px 14px; color: var(--dim); min-height: 66px; }
@@ -148,7 +150,7 @@ function render(t) {
     t.btn.innerHTML = `<span class="dot" style="background:${grad(g)}"></span><span class="name">${esc(g.name)}</span><span class="x" title="Close tab">&times;</span>`;
   } else {
     t.view.appendChild(home(t));
-    t.btn.innerHTML = `<img class="dot" src="logo.svg" alt=""><span class="name">Home</span><span class="x" title="Close tab">&times;</span>`;
+    t.btn.innerHTML = `<img class="dot" src="icon.png" alt=""><span class="name">Home</span><span class="x" title="Close tab">&times;</span>`;
   }
 }
 function chrome() {
@@ -170,7 +172,7 @@ function focusPage() {
 function home(t) {
   const el = document.createElement('div');
   el.className = 'home';
-  el.innerHTML = `<div class="homeIn"><img class="mark" src="logo.svg" alt=""><h1 class="logo">superdupercooler<i>website</i></h1><div class="sub">${GAMES.length} games</div>
+  el.innerHTML = `<div class="homeIn"><h1 class="logo"><img class="mark" src="logo.png" alt="superdupercoolerwebsite"></h1><div class="sub">${GAMES.length} games</div>
     <input class="big" placeholder="Search games" spellcheck="false" autocomplete="off"><div class="grid"></div></div>`;
   const box = el.querySelector('.big'), grid = el.querySelector('.grid');
   const fill = () => {
@@ -179,7 +181,10 @@ function home(t) {
     for (const g of list) {
       const c = document.createElement('button');
       c.className = 'card';
-      c.innerHTML = `<div class="art" data-l="${esc(g.name[0])}" style="background:${grad(g)}"><span>${esc(g.name)}</span></div><p>${esc(g.about)}</p>`;
+      // a game with its own picture shows that (its name is in the picture); the others get a coloured tile
+      c.innerHTML = g.art
+        ? `<div class="art pic" style="background-image:url('${g.art}')" role="img" aria-label="${esc(g.name)}"></div><p>${esc(g.about)}</p>`
+        : `<div class="art" data-l="${esc(g.name[0])}" style="background:${grad(g)}"><span>${esc(g.name)}</span></div><p>${esc(g.about)}</p>`;
       c.onclick = e => { if (e.ctrlKey || e.metaKey) newTab(g.id); else go(t, g.id); };
       c.onauxclick = e => { if (e.button === 1) { const was = cur; newTab(g.id); show(was); } };
       grid.appendChild(c);
