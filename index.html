@@ -76,6 +76,19 @@
   .go svg { color: #fff; width: 20px; height: 20px; }
   .buddy { position: absolute; left: 16px; bottom: 14px; z-index: 1; display: flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 13px; background: #ffffffd9; border: 2px solid #2a235026; color: #2a2350; font-family: "Pixelify Sans", system-ui, sans-serif; font-size: 15px; box-shadow: 0 4px 0 #1d174622; }
   .buddy b { font-weight: 700; } .buddy b.off { color: #b4530a; }
+  /* pixel widget cards */
+  .widgets { margin-top: 28px; width: min(560px, 100%); display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .wg { min-height: 96px; padding: 12px 14px; border-radius: 16px; background: #fbfaffe6; border: 3px solid #2a2350; box-shadow: 0 6px 0 #1d1746; color: #2a2350; font-family: "Pixelify Sans", system-ui, sans-serif; display: flex; flex-direction: column; gap: 5px; }
+  .wg .h { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; opacity: .55; }
+  .wg .clock { font-size: 36px; font-weight: 700; line-height: .95; }
+  .wg .date { font-size: 14px; opacity: .8; }
+  .wg .wrow { display: flex; align-items: center; gap: 10px; }
+  .wg .ico { font-size: 30px; line-height: 1; }
+  .wg .temp { font-size: 32px; font-weight: 700; line-height: 1; }
+  .wg .city { font-size: 13px; opacity: .8; }
+  .wg .city a { color: #7a4bd0; }
+  .wg textarea { flex: 1; min-height: 46px; resize: none; border: 0; background: none; outline: none; font: 16px/1.35 "Pixelify Sans", system-ui, sans-serif; color: #2a2350; }
+  .wg textarea::placeholder { color: #8b84b4; }
 </style>
 </head>
 <body>
@@ -219,8 +232,10 @@ function startPage(t) {
   el.innerHTML = `<svg class="sky" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
     <img class="logo" src="logo.png" alt="superdupercoolerwebsite">
     <form class="big"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Search the web…" spellcheck="false" autocapitalize="off" enterkeyhint="go"><button class="go" type="submit" aria-label="Search"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button></form>
+    <div class="widgets"></div>
     <div class="buddy">😎 <b>Stay cool</b></div>`;
   buildSky(el.querySelector('.sky'));
+  buildWidgets(el.querySelector('.widgets'));
   el.querySelector('form').onsubmit = e => { e.preventDefault(); go(t, toUrl(el.querySelector('input').value)); };
   proxyReady.then(() => {
     const b = el.querySelector('.buddy');
@@ -231,6 +246,45 @@ function startPage(t) {
   return el;
 }
 
+// the pixel widget row under the search bar: clock, weather, note
+function buildWidgets(w) {
+  w.innerHTML = `
+    <div class="wg"><div class="h">Time</div><div class="clock">--:--</div><div class="date"></div></div>
+    <div class="wg wgWx"><div class="h">Weather</div><div class="wrow"><span class="ico">⏳</span><span class="temp">—</span></div><div class="city">Locating…</div></div>
+    <div class="wg"><div class="h">Note</div><textarea placeholder="jot something…" maxlength="160" spellcheck="false"></textarea></div>`;
+  // clock (stops itself once the home tab is replaced)
+  const cl = w.querySelector('.clock'), dt = w.querySelector('.date');
+  const paint = () => {
+    const d = new Date();
+    cl.textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    dt.textContent = d.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+  };
+  paint();
+  const iv = setInterval(() => { if (!w.isConnected) return clearInterval(iv); paint(); }, 1000);
+  // note, saved on this device
+  const ta = w.querySelector('textarea');
+  try { ta.value = localStorage.getItem('sdcw.note') || ''; } catch (e) {}
+  ta.oninput = () => { try { localStorage.setItem('sdcw.note', ta.value); } catch (e) {} };
+  loadWeather(w.querySelector('.wgWx'));
+}
+// no API key: approximate location from the IP, then Open-Meteo for the current conditions
+async function loadWeather(card) {
+  const ico = card.querySelector('.ico'), temp = card.querySelector('.temp'), city = card.querySelector('.city');
+  const icon = c => c === 0 ? '☀️' : c <= 2 ? '🌤️' : c === 3 ? '☁️' : c <= 48 ? '🌫️' : c <= 67 ? '🌧️' : c <= 77 ? '❄️' : c <= 82 ? '🌦️' : c <= 86 ? '🌨️' : '⛈️';
+  ico.textContent = '⏳'; temp.textContent = '—'; city.textContent = 'Locating…';
+  try {
+    const g = await fetch('https://ipapi.co/json/').then(r => r.ok ? r.json() : Promise.reject());
+    const j = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${g.latitude}&longitude=${g.longitude}&current=temperature_2m,weather_code`).then(r => r.ok ? r.json() : Promise.reject());
+    const cu = j.current;
+    ico.textContent = icon(cu.weather_code);
+    temp.textContent = Math.round(cu.temperature_2m) + '°';
+    city.textContent = g.city || g.region || '';
+  } catch (e) {
+    ico.textContent = '📡'; temp.textContent = '—';
+    city.innerHTML = '<a href="#">offline — retry</a>';
+    city.querySelector('a').onclick = ev => { ev.preventDefault(); loadWeather(card); };
+  }
+}
 // draws the pixel night sky: twinkling stars + a blocky cloud bank along the bottom
 function buildSky(svg) {
   const R = (a, b) => a + Math.random() * (b - a);
