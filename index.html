@@ -2,312 +2,134 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>superdupercoolerwebsite</title>
 <link rel="icon" type="image/png" href="icon.png">
 <style>
-  /* ---- theme tokens (the accent is swappable from the sidebar) ---- */
   :root {
-    --acc: #8b5cf6; --acc2: #ff5fa2; --glow: #8b5cf655;
-    --bg: #0b0c11; --bg2: #0f1016; --panel: #171a24; --panel2: #1e2130; --raise: #262a3b;
-    --line: #272b3d; --text: #edeff7; --dim: #888fa6;
+    --acc: #8b5cf6; --acc2: #ff5fa2; --glow: #8b5cf655; --ok: #4ade80;
+    --bg: #0b0c11; --bar: #12131b; --panel: #171a24; --panel2: #1e2130; --line: #272b3d; --text: #edeff7; --dim: #888fa6;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 "Segoe UI", system-ui, sans-serif; overflow: hidden; }
-  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  button, input { font: inherit; color: inherit; }
+  button { background: none; border: 0; cursor: pointer; padding: 0; }
   ::selection { background: var(--acc); color: #fff; }
-  #app { display: flex; height: 100%; }
-  #main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-
-  /* ---- left rail ---- */
-  #rail { width: 60px; flex: none; background: linear-gradient(180deg, #121420, #0c0d13); border-right: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0; z-index: 30; }
-  .railbtn { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; color: var(--dim); position: relative; transition: color .15s, background .15s, box-shadow .15s; }
-  .railbtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .railbtn img { width: 30px; height: 30px; object-fit: contain; }
-  .railbtn:hover { color: var(--text); background: var(--panel2); }
-  .railbtn.on { color: #fff; background: color-mix(in srgb, var(--acc) 22%, transparent); box-shadow: inset 0 0 0 1px var(--acc), 0 0 16px var(--glow); }
-  .railbtn.on::before { content: ""; position: absolute; left: -10px; top: 9px; bottom: 9px; width: 3px; border-radius: 3px; background: var(--acc); box-shadow: 0 0 10px var(--acc); }
-  .railsp { flex: 1; }
-  #themePop { position: fixed; left: 64px; bottom: 14px; display: none; grid-template-columns: repeat(3, 30px); gap: 8px; padding: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 16px 40px #000b; z-index: 40; }
-  #themePop.show { display: grid; }
-  #themePop button { width: 30px; height: 30px; border-radius: 9px; box-shadow: inset 0 0 0 1px #0004; transition: transform .12s; }
-  #themePop button:hover { transform: scale(1.14); }
+  #app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0); }
+  svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
   /* ---- tab strip ---- */
-  #tabs { display: flex; align-items: flex-end; gap: 3px; padding: 7px 8px 0; background: #0c0d13; min-height: 42px; overflow-x: auto; scrollbar-width: none; }
+  #tabs { flex: none; display: flex; align-items: flex-end; gap: 3px; padding: 7px 8px 0; background: #0c0d13; min-height: 43px; overflow-x: auto; scrollbar-width: none; }
   #tabs::-webkit-scrollbar { display: none; }
-  .tab { display: flex; align-items: center; gap: 8px; min-width: 120px; max-width: 220px; height: 35px; padding: 0 8px 0 13px; border-radius: 11px 11px 0 0; color: var(--dim); white-space: nowrap; flex: 0 1 220px; position: relative; transition: background .15s, color .15s; }
+  .tab { display: flex; align-items: center; gap: 8px; min-width: 110px; max-width: 220px; height: 36px; padding: 0 6px 0 12px; border-radius: 11px 11px 0 0; color: var(--dim); white-space: nowrap; flex: 0 1 220px; position: relative; transition: background .15s, color .15s; }
   .tab:hover { background: #171925; color: var(--text); }
-  .tab.on { background: var(--panel); color: var(--text); }
-  .tab.on::after { content: ""; position: absolute; left: 10px; right: 10px; top: 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--acc), var(--acc2)); box-shadow: 0 0 10px var(--glow); }
-  .tab .dot { width: 15px; height: 15px; border-radius: 5px; flex: none; object-fit: cover; }
-  .tab .name { flex: 1; overflow: hidden; text-overflow: ellipsis; text-align: left; font-size: 13px; }
-  .tab .x { width: 20px; height: 20px; border-radius: 50%; line-height: 18px; text-align: center; color: var(--dim); flex: none; }
-  .tab .x:hover { background: #3a3e52; color: #fff; }
-  #newtab { width: 32px; height: 32px; margin: 0 0 2px 4px; border-radius: 10px; font-size: 20px; line-height: 30px; color: var(--dim); flex: none; }
-  #newtab:hover { background: var(--panel2); color: #fff; }
+  .tab.on { background: var(--bar); color: var(--text); }
+  .tab.on::before { content: ""; position: absolute; left: 10px; right: 10px; top: 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--acc), var(--acc2)); box-shadow: 0 0 10px var(--glow); }
+  .tab .fav { width: 16px; height: 16px; border-radius: 4px; flex: none; }
+  .tab .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; text-align: left; font-size: 13px; }
+  .tab .x { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-size: 16px; line-height: 1; flex: none; }
+  .tab .x:hover { background: var(--line); }
+  .tab .spin { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--acc); animation: spin .7s linear infinite; flex: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #newtab { width: 32px; height: 32px; margin: 0 0 3px 2px; border-radius: 9px; color: var(--dim); display: grid; place-items: center; flex: none; }
+  #newtab:hover { background: var(--panel2); color: var(--text); }
 
   /* ---- toolbar ---- */
-  #bar { display: flex; align-items: center; gap: 4px; padding: 8px 12px; background: var(--panel); border-bottom: 1px solid #000; position: relative; }
-  .nav { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: none; color: var(--text); transition: background .15s; }
-  .nav:hover:not(:disabled) { background: var(--panel2); }
-  .nav:disabled { opacity: .3; cursor: default; }
-  .nav svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  #addrWrap { flex: 1; position: relative; margin: 0 8px; }
-  #addr { width: 100%; height: 38px; padding: 0 18px 0 40px; border-radius: 19px; border: 2px solid transparent; outline: 0; background: #0c0d13; color: var(--text); font: inherit; transition: border-color .15s, box-shadow .15s, background .15s; }
-  #addr:focus { border-color: var(--acc); background: #090a0e; box-shadow: 0 0 0 4px var(--glow); }
-  #addrWrap > svg { position: absolute; left: 14px; top: 11px; width: 16px; height: 16px; fill: none; stroke: var(--dim); stroke-width: 2.2; stroke-linecap: round; pointer-events: none; }
-  #sug { position: absolute; left: 0; right: 0; top: 44px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 6px; display: none; z-index: 20; box-shadow: 0 16px 44px #000b; }
-  #sug.show { display: block; }
-  .s { display: flex; align-items: center; gap: 12px; width: 100%; padding: 9px 11px; border-radius: 10px; text-align: left; }
-  .s.on, .s:hover { background: var(--panel2); }
-  .s .dot { width: 26px; height: 26px; border-radius: 8px; flex: none; }
-  .s b { font-weight: 600; }
-  .s span { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .s.none { color: var(--dim); cursor: default; }
+  #bar { flex: none; display: flex; align-items: center; gap: 4px; padding: 7px 10px; background: var(--bar); border-bottom: 1px solid var(--line); }
+  .ib { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--dim); flex: none; }
+  .ib:hover:not(:disabled) { background: var(--panel2); color: var(--text); }
+  .ib:disabled { opacity: .3; cursor: default; }
+  #box { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 36px; margin: 0 4px; padding: 0 6px 0 6px; border-radius: 18px; background: #0b0c11; border: 1px solid var(--line); transition: border-color .15s, box-shadow .15s; }
+  #box:focus-within { border-color: var(--acc); box-shadow: 0 0 0 3px var(--glow); }
+  #chip { display: flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 12px; font-size: 12px; font-weight: 700; white-space: nowrap; flex: none; background: #4ade801c; color: var(--ok); }
+  #chip svg { width: 13px; height: 13px; }
+  #chip.off { background: var(--panel2); color: var(--dim); }
+  #chip[hidden] { display: none; }
+  #addr { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; font-size: 14px; }
+  #addr::placeholder { color: var(--dim); }
+  @media (max-width: 560px) { #chip span { display: none; } #chip { padding: 0 6px; } #home, #full { display: none; } }
 
   /* ---- pages ---- */
-  #views { flex: 1; position: relative; background: #000; }
+  #views { flex: 1; min-height: 0; position: relative; background: var(--bg); }
   .view { position: absolute; inset: 0; display: none; }
   .view.on { display: block; }
-  iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
-  .home { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; background: var(--bg); scrollbar-width: none; }
-  .home::-webkit-scrollbar { display: none; }
+  .view iframe { width: 100%; height: 100%; border: 0; background: #fff; display: block; }
+  .note { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 9px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); color: var(--dim); font-size: 13px; box-shadow: 0 10px 30px #000a; display: flex; gap: 10px; align-items: center; }
+  .note a { color: var(--acc2); font-weight: 700; text-decoration: none; white-space: nowrap; }
 
-  /* hero */
-  .hero { position: relative; overflow: hidden; padding: 54px clamp(18px, 4vw, 44px) 30px; text-align: center; }
-  .heroGlow { position: absolute; left: 50%; top: -120px; width: 900px; max-width: 150%; height: 560px; transform: translateX(-50%); pointer-events: none; z-index: 0;
-    background: radial-gradient(closest-side, var(--glow), transparent 70%); filter: blur(10px); animation: pulse 7s ease-in-out infinite; }
-  @keyframes pulse { 0%,100% { opacity: .6; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.08); } }
-  .hero > :not(.heroGlow) { position: relative; z-index: 1; }
-  .mark { display: block; width: min(560px, 92%); height: auto; margin: 0 auto 10px; filter: drop-shadow(0 8px 30px #000a); }
-  .sub { color: var(--dim); margin: 0 0 24px; font-size: 14px; letter-spacing: .2px; }
-  .sub b { color: var(--text); font-weight: 600; }
-  .bigWrap { position: relative; width: min(640px, 100%); margin: 0 auto; }
-  .bigWrap svg { position: absolute; left: 20px; top: 17px; width: 20px; height: 20px; fill: none; stroke: var(--dim); stroke-width: 2.2; stroke-linecap: round; pointer-events: none; }
-  .big { display: block; width: 100%; height: 54px; padding: 0 22px 0 52px; border-radius: 27px; border: 2px solid var(--line); outline: 0; background: var(--panel); color: var(--text); font: inherit; font-size: 16px; transition: border-color .15s, box-shadow .15s; }
-  .big:focus { border-color: var(--acc); box-shadow: 0 0 0 5px var(--glow); }
-
-  /* shelf */
-  .shelf { max-width: 1180px; margin: 0 auto; padding: 8px clamp(18px, 4vw, 44px) 64px; }
-  .chips { display: flex; gap: 9px; flex-wrap: wrap; margin: 0 0 22px; }
-  .chip { padding: 9px 17px; border-radius: 20px; background: var(--panel); border: 1px solid var(--line); color: var(--dim); font-weight: 600; font-size: 13px; transition: all .15s; }
-  .chip:hover { color: var(--text); border-color: var(--raise); }
-  .chip.on { color: #0b0c12; background: linear-gradient(135deg, var(--acc), var(--acc2)); border-color: transparent; box-shadow: 0 4px 18px var(--glow); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(122px, 1fr)); gap: 12px; }
-  .card { position: relative; display: block; aspect-ratio: 1 / 1; overflow: hidden; background: none; border: 0; transition: transform .14s, box-shadow .14s; }
-  .card:hover, .card:focus-visible { transform: translateY(-3px) scale(1.04); box-shadow: 0 12px 28px #000b, 0 0 0 2px var(--acc), 0 0 20px var(--glow); outline: 0; z-index: 1; }
-  .card::after { content: ""; position: absolute; top: calc(50% - 22px); left: calc(50% - 22px); width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--acc), var(--acc2)); opacity: 0; transform: scale(.6); transition: opacity .16s, transform .16s; pointer-events: none; box-shadow: 0 6px 18px #000a; }
-  .card::before { content: ""; position: absolute; top: calc(50% - 9px); left: calc(50% - 5px); z-index: 2; width: 0; height: 0; opacity: 0; transition: opacity .16s; border-left: 14px solid #fff; border-top: 9px solid transparent; border-bottom: 9px solid transparent; filter: drop-shadow(0 1px 1px #0006); margin-left: 3px; }
-  .card:hover::after { opacity: .96; transform: scale(1); }
-  .card:hover::before { opacity: 1; }
-  .card .art { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 8px; }
-  .art.pic { background-size: cover; background-position: center; }
-  .art:not(.pic) span { font-size: clamp(12px, 2.2vw, 17px); font-weight: 800; color: #fff; text-align: center; text-shadow: 0 2px 10px #0008; line-height: 1.15; }
-  .empty { text-align: center; color: var(--dim); padding: 40px 0; grid-column: 1 / -1; }
-
-  /* ---- search results page ---- */
-  .dot.look { background: #0c0d13 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2.6' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6'/%3E%3Cpath d='M16 16l4 4'/%3E%3C/svg%3E") center/70% no-repeat; }
-  .srp { background: var(--bg); --link: #8fb2ff; --seen: #c39bff; }
-  .shead { display: flex; align-items: center; gap: 22px; padding: 18px clamp(16px,3vw,24px) 10px; flex-wrap: wrap; }
-  .slogo { flex: none; padding: 0; }
-  .slogo img { display: block; height: 48px; width: auto; }
-  .sbox { flex: 1 1 320px; max-width: 690px; display: flex; align-items: center; height: 46px; border-radius: 23px; background: var(--panel); border: 1px solid var(--line); padding: 0 6px 0 20px; transition: border-color .15s, box-shadow .15s; }
-  .sbox:focus-within { border-color: var(--acc); box-shadow: 0 0 0 4px var(--glow); }
-  .sbox input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: 0; color: var(--text); font: inherit; font-size: 16px; }
-  .sbox button { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; flex: none; }
-  .sbox button:hover { background: var(--panel2); }
-  .sbox svg { width: 19px; height: 19px; fill: none; stroke: var(--acc); stroke-width: 2.4; stroke-linecap: round; }
-  .stabs { display: flex; gap: 4px; padding: 0 24px 0 clamp(16px,3vw,24px); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
-  .stabs button { padding: 10px 14px 9px; color: var(--dim); font-weight: 600; border-bottom: 3px solid transparent; white-space: nowrap; }
-  .stabs button:hover { color: var(--text); }
-  .stabs button.on { color: var(--acc); border-bottom-color: var(--acc); }
-  .sbody { display: flex; gap: 48px; align-items: flex-start; padding: 22px clamp(16px,3vw,24px) 60px; }
-  .smain { flex: 1 1 0; min-width: 0; max-width: 690px; }
-  .side { flex: 0 1 370px; min-width: 0; }
-  .side:empty { display: none; }
-  .srp .list { display: flex; flex-direction: column; gap: 28px; }
-  .g { min-width: 0; }
-  .g.wide { display: flex; gap: 16px; align-items: flex-start; }
-  .g.wide > div { min-width: 0; flex: 1; }
-  .gpic { position: relative; flex: none; width: 168px; border-radius: 12px; overflow: hidden; background: var(--panel); }
-  .gpic img { display: block; width: 100%; height: 96px; object-fit: cover; }
-  .gpic em { position: absolute; right: 6px; bottom: 6px; padding: 1px 6px; border-radius: 6px; background: #000c; color: #fff; font-style: normal; font-size: 12px; }
-  .gsite { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; margin-bottom: 6px; min-width: 0; }
-  .gsite > span { display: flex; flex-direction: column; min-width: 0; }
-  .gsite b { font-weight: 500; font-size: 14px; color: var(--text); }
-  .gsite i { font-style: normal; font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .fav { width: 28px; height: 28px; border-radius: 50%; background: var(--panel2); padding: 5px; flex: none; }
-  .fav.none { display: grid; place-items: center; padding: 0; color: var(--dim); font-weight: 800; font-size: 13px; }
-  .gt { display: inline-block; font-size: 20px; line-height: 1.3; color: var(--link); text-decoration: none; text-align: left; padding: 0; overflow-wrap: anywhere; }
-  .gt:hover { text-decoration: underline; }
-  a.gt:visited { color: var(--seen); }
-  .g p { margin: 4px 0 0; color: #c3c8dc; line-height: 1.58; overflow-wrap: anywhere; }
-  .when { color: var(--dim); }
-  .ans { padding: 18px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); }
-  .ans img { display: block; width: 100%; height: auto; max-height: 220px; object-fit: cover; border-radius: 12px; margin-bottom: 14px; }
-  .ans b { display: block; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
-  .ans p { margin: 4px 0 6px; font-size: 15px; color: #dfe3f5; overflow-wrap: anywhere; }
-  .ans a { color: var(--link); font-size: 13px; }
-  .paa h3, .rel h3 { margin: 0 0 10px; font-size: 20px; font-weight: 600; }
-  .paa details { border-top: 1px solid var(--line); padding: 12px 0; }
-  .paa details:last-child { border-bottom: 1px solid var(--line); }
-  .paa summary { cursor: pointer; font-size: 16px; }
-  .paa p { margin: 10px 0 6px; color: #c3c8dc; }
-  .paa a { color: var(--link); font-size: 13px; }
-  .rel { display: flex; flex-wrap: wrap; gap: 10px; }
-  .rel h3 { flex: 1 0 100%; }
-  .rel button { padding: 11px 18px; border-radius: 22px; background: var(--panel); border: 1px solid var(--line); text-align: left; }
-  .rel button:hover { border-color: var(--acc); }
-  .list.pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
-  .pic { display: block; border-radius: 12px; overflow: hidden; text-decoration: none; }
-  .pic img { display: block; width: 100%; height: 150px; object-fit: cover; border-radius: 12px; }
-  .pic span { display: block; padding: 6px 2px 0; color: var(--text); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .pic i { display: block; padding: 0 2px; font-style: normal; font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .pager { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 36px; color: var(--dim); }
-  .pager button { padding: 9px 18px; border-radius: 20px; background: var(--panel); border: 1px solid var(--line); color: var(--link); font-weight: 600; }
-  .pager button:hover { border-color: var(--acc); }
-  .srp:has(.list.pics) .smain { max-width: none; }
-  .note { padding: 10px 14px; border-radius: 12px; background: #2a2333; border: 1px solid #5a3f6e; color: #e6d6f5; }
-  .note button { margin-left: 8px; padding: 4px 12px; border-radius: 12px; background: var(--acc); color: #0b0c12; font-weight: 700; }
-  @media (max-width: 1000px) {
-    .shead { padding: 14px 16px 8px; gap: 12px; }
-    .slogo img { height: 40px; }
-    .sbody { flex-direction: column-reverse; gap: 22px; padding: 18px 16px 50px; }
-    .side { flex: none; width: 100%; }
-    .gpic { width: 120px; }
-    .gpic img { height: 72px; }
-  }
-  @media (max-width: 560px) { #rail { width: 54px; } .railbtn { width: 40px; height: 40px; } #themePop { left: 58px; } }
-
-  /* ---- web page in a tab ---- */
-  .web { display: flex; flex-direction: column; height: 100%; background: #fff; }
-  .web iframe { flex: 1; min-height: 0; background: #fff; }
-  .wbar { display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: var(--panel); border-bottom: 1px solid var(--line); color: var(--dim); font-size: 13px; }
-  .wbar .fav { width: 22px; height: 22px; padding: 3px; }
-  .wbar span { color: var(--text); font-weight: 600; white-space: nowrap; }
-  .wbar em { flex: 1; min-width: 0; font-style: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .wbar .shield { color: #4ade80; font-weight: 700; margin-right: 6px; }
-  .wbar a { flex: none; padding: 5px 12px; border-radius: 14px; background: var(--acc); color: #0b0c12; font-weight: 700; text-decoration: none; }
-
-  /* ---- AI assistant panel ---- */
-  #ai { position: fixed; top: 0; right: 0; bottom: 0; width: min(380px, 100%); background: var(--bg2); border-left: 1px solid var(--line); display: flex; flex-direction: column; transform: translateX(100%); transition: transform .22s ease; z-index: 45; box-shadow: -14px 0 44px #0008; }
-  #ai.open { transform: none; }
-  .ai-head { display: flex; align-items: center; gap: 10px; padding: 14px; border-bottom: 1px solid var(--line); }
-  .ai-head b { flex: 1; font-size: 15px; }
-  .ai-dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, var(--acc), var(--acc2)); box-shadow: 0 0 10px var(--glow); flex: none; }
-  .ai-head button { width: 30px; height: 30px; border-radius: 9px; color: var(--dim); display: grid; place-items: center; font-size: 17px; }
-  .ai-head button:hover { background: var(--panel2); color: var(--text); }
-  .ai-log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-  .ai-hello { color: var(--dim); text-align: center; margin: auto; max-width: 250px; font-size: 14px; line-height: 1.6; }
-  .ai-hello b { color: var(--text); }
-  .ai-msg { max-width: 86%; padding: 10px 14px; border-radius: 16px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
-  .ai-msg.user { align-self: flex-end; background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #0b0c12; font-weight: 500; border-bottom-right-radius: 5px; }
-  .ai-msg.bot { align-self: flex-start; background: var(--panel); border: 1px solid var(--line); border-bottom-left-radius: 5px; }
-  .ai-typing { display: flex; gap: 5px; align-items: center; }
-  .ai-typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); animation: blink 1.2s infinite; }
-  .ai-typing span:nth-child(2) { animation-delay: .2s; } .ai-typing span:nth-child(3) { animation-delay: .4s; }
-  @keyframes blink { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
-  .ai-in { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
-  .ai-in textarea { flex: 1; resize: none; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 11px 14px; color: var(--text); font: inherit; outline: 0; max-height: 120px; }
-  .ai-in textarea:focus { border-color: var(--acc); box-shadow: 0 0 0 3px var(--glow); }
-  .ai-in button { width: 44px; flex: none; border-radius: 13px; background: linear-gradient(135deg, var(--acc), var(--acc2)); display: grid; place-items: center; }
-  .ai-in svg { width: 19px; height: 19px; fill: #0b0c12; }
-
-  @media (prefers-reduced-motion: reduce) { .heroGlow { animation: none; } * { transition: none !important; } }
+  /* ---- new tab page ---- */
+  .start { height: 100%; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; align-items: center; padding: 7vh 16px 40px; position: relative; }
+  .start::-webkit-scrollbar { display: none; }
+  .start::before { content: ""; position: absolute; top: -10%; left: 50%; width: min(900px, 120%); height: 460px; transform: translateX(-50%); background: radial-gradient(closest-side, #8b5cf633, transparent); pointer-events: none; }
+  .start > * { position: relative; }
+  .logo { width: min(500px, 84vw); height: auto; image-rendering: pixelated; filter: drop-shadow(0 0 28px #8b5cf644); }
+  .tag { margin: 4px 0 22px; color: var(--dim); }
+  .big { width: min(620px, 100%); display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 18px; border-radius: 27px; background: var(--panel); border: 1px solid var(--line); transition: border-color .15s, box-shadow .15s; }
+  .big:focus-within { border-color: var(--acc); box-shadow: 0 0 0 4px var(--glow), 0 12px 40px #0008; }
+  .big svg { color: var(--dim); }
+  .big input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; font-size: 16px; }
+  .tiles { margin-top: 30px; width: min(620px, 100%); display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 12px; }
+  .tile { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 6px 12px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); color: var(--text); font-size: 12px; transition: transform .12s, border-color .12s, box-shadow .12s; }
+  .tile:hover { transform: translateY(-3px); border-color: var(--acc); box-shadow: 0 0 22px var(--glow); }
+  .tile img { width: 34px; height: 34px; border-radius: 9px; background: #fff; padding: 4px; }
+  .status { margin-top: 26px; display: flex; align-items: center; gap: 8px; color: var(--dim); font-size: 13px; text-align: center; }
+  .status b { color: var(--ok); } .status b.off { color: #fbbf24; }
 </style>
 </head>
 <body>
 <div id="app">
-  <nav id="rail">
-    <button class="railbtn" id="rHome" title="Home"><img src="icon.png" alt="Home"></button>
-    <button class="railbtn" id="rGames" title="Games"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3"/><circle cx="16" cy="11.5" r=".6" fill="currentColor"/><circle cx="18" cy="13.5" r=".6" fill="currentColor"/></svg></button>
-    <button class="railbtn" id="rSearch" title="Search the web"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg></button>
-    <button class="railbtn" id="rAI" title="AI assistant"><svg viewBox="0 0 24 24"><path d="M21 11.5a8 8 0 0 1-11.6 7.1L4 20l1.4-5A8 8 0 1 1 21 11.5z"/><path d="M12 8.3l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z" fill="currentColor" stroke="none"/></svg></button>
-    <div class="railsp"></div>
-    <button class="railbtn" id="rTheme" title="Theme colour"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="8" r="1.2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="10" r="1.2" fill="currentColor" stroke="none"/></svg></button>
-    <button class="railbtn" id="full" title="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
-  </nav>
-  <div id="main">
-    <div id="tabs"><button id="newtab" title="New tab (Ctrl+Alt+T)">+</button></div>
-    <div id="bar">
-      <button class="nav" id="back" title="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <button class="nav" id="fwd" title="Forward"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
-      <button class="nav" id="reload" title="Reload"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5"/></svg></button>
-      <button class="nav" id="homeBtn" title="Home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></button>
-      <div id="addrWrap">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
-        <input id="addr" spellcheck="false" autocomplete="off" placeholder="Search the web or type an address">
-        <div id="sug"></div>
-      </div>
-    </div>
-    <div id="views"></div>
+  <div id="tabs"><button id="newtab" title="New tab" aria-label="New tab"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
+  <div id="bar">
+    <button class="ib" id="back" title="Back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <button class="ib" id="fwd" title="Forward" aria-label="Forward"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+    <button class="ib" id="reload" title="Reload" aria-label="Reload"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+    <button class="ib" id="home" title="Home" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></button>
+    <form id="box" autocomplete="off">
+      <div id="chip" hidden><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.500-1-8-4-8-9V6z"/></svg><span></span></div>
+      <input id="addr" placeholder="Search or type a web address" spellcheck="false" autocapitalize="off" enterkeyhint="go">
+    </form>
+    <button class="ib" id="real" title="Open this page in a real tab" aria-label="Open in a real tab"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
+    <button class="ib" id="full" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   </div>
+  <div id="views"></div>
 </div>
 <script>
+'use strict';
 const $ = s => document.querySelector(s);
-const tabsEl = $('#tabs'), viewsEl = $('#views'), addr = $('#addr'), sug = $('#sug');
-let GAMES = [], tabs = [], cur = null, nextId = 1, sel = 0, shown = [];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const tabsEl = $('#tabs'), viewsEl = $('#views'), addr = $('#addr'), chip = $('#chip');
+const tabs = []; let cur = null, nextId = 1;
+const SHORTCUTS = [['Wikipedia', 'https://www.wikipedia.org/'], ['YouTube', 'https://www.youtube.com/'], ['Reddit', 'https://www.reddit.com/'], ['GitHub', 'https://github.com/'], ['Hacker News', 'https://news.ycombinator.com/'], ['Archive', 'https://archive.org/']];
+const SEARCH = 'https://duckduckgo.com/?q=';      // Google answers a proxy with a "prove you are human" test
+const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } };
+const favOf = u => 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(hostOf(u));
+const sameUrl = (a, b) => { try { return new URL(a).href === new URL(b).href; } catch (e) { return a === b; } };
 
-const grad = g => `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})`;
-const byId = id => GAMES.find(g => g.id === id);
-const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-
-// ---------- theme colour ----------
-const THEMES = { violet: ['#8b5cf6', '#ff5fa2'], pink: ['#ff2d78', '#ff8fc0'], ocean: ['#3b82f6', '#22d3ee'], toxic: ['#22c55e', '#a3e635'], blood: ['#ef4444', '#f59e0b'], ice: ['#38bdf8', '#818cf8'] };
-function setTheme(k) {
-  const c = THEMES[k] || THEMES.violet, r = document.documentElement.style;
-  r.setProperty('--acc', c[0]); r.setProperty('--acc2', c[1]); r.setProperty('--glow', c[0] + '55');
-  try { localStorage.setItem('sdcw.accent', k); } catch (e) {}
-}
-try { const k = localStorage.getItem('sdcw.accent'); if (k && THEMES[k]) setTheme(k); } catch (e) {}
-
-// ---------- protected browser ----------
-// When the site runs on this PC and its proxy (sdcw-proxy) is started, other websites open through it:
-// almost any site loads inside the tab, and it is shut in a box that cannot download files.
+/* ---------- the proxy ----------
+   Pages open through a proxy so that almost any site loads inside a tab, shut in a box that cannot download files.
+   On this PC the proxy is the local one (port 9200); online, proxy.json says where it is. */
 let PROXY = null;
-// On a public server the file proxy.json ({"proxy": "https://..."}) says where its proxy is; hosts without one have none.
 const proxyAt = base => fetch(base + '/health').then(r => r.json()).then(j => { if (j.ok) PROXY = base; });
 const proxyReady = (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)
   ? proxyAt(`http://${location.hostname}:9200`)
   : fetch('proxy.json').then(r => r.ok ? r.json() : {}).then(j => /^https:\/\/[\w.-]+$/.test(j.proxy || '') ? proxyAt(j.proxy) : 0)).catch(() => {});
-const sameUrl = (a, b) => { try { return new URL(a).href === new URL(b).href; } catch (e) { return a === b; } };
-addEventListener('message', e => {
-  if (!PROXY || e.origin !== PROXY || !e.data || e.data.sdcw !== 'nav' || !/^https?:\/\//.test(e.data.url)) return;
-  const t = tabs.find(o => { const f = o.view.querySelector('iframe[data-proxied]'); return f && f.contentWindow === e.source; });
-  if (!t) return;
-  const f = t.view.querySelector('iframe[data-proxied]'), url = e.data.url, host = hostOf(url), w = 'web:' + url;
-  if (f.dataset.first) { delete f.dataset.first; t.hist[t.at] = w; }                 // the page it settled on (after redirects)
-  else if (!sameUrl(here(t).slice(4), url)) { t.hist.length = t.at + 1; t.hist.push(w); t.at = t.hist.length - 1; }
-  const fav = 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(host);
-  const bar = t.view.querySelector('.wbar');
-  if (bar) { bar.querySelector('span').textContent = host; bar.querySelector('.fav').src = fav; bar.querySelector('a').href = url; }
-  t.btn.innerHTML = `<img class="dot" src="${fav}" alt="" referrerpolicy="no-referrer"><span class="name">${esc(e.data.title || host)}</span><span class="x" title="Close tab">&times;</span>`;
-  if (t === cur) chrome();
-});
 
-// Which games match what was typed, best first. Every word typed has to be found somewhere in the game.
-function search(q) {
-  const words = q.toLowerCase().replace(/^arcade:\/\//, '').split(/[\s\-_/]+/).filter(Boolean);
-  if (!words.length) return GAMES.slice();
-  const out = [];
-  for (const g of GAMES) {
-    const name = g.name.toLowerCase(), all = name + ' ' + g.id + ' ' + g.tags + ' ' + g.about.toLowerCase();
-    let score = 0, ok = true;
-    for (const w of words) {
-      if (name.startsWith(w)) score += 5; else if (name.includes(w)) score += 3; else if (all.includes(w)) score += 1; else { ok = false; break; }
-    }
-    if (ok) out.push([score, g]);
-  }
-  return out.sort((a, b) => b[0] - a[0]).map(e => e[1]);
+// What was typed: a web address, or words to search for.
+function toUrl(q) {
+  q = q.trim();
+  if (!q) return '';
+  if (/^https?:\/\//i.test(q)) return q;
+  if (!/\s/.test(q) && /^([\w-]+\.)+[a-z]{2,}(:\d+)?(\/.*)?$/i.test(q)) return 'https://' + q;
+  return SEARCH + encodeURIComponent(q);
 }
 
-// ---------- tabs ----------
+/* ---------- tabs ---------- */
+const here = t => t.hist[t.at];
 function newTab(where = 'home') {
-  const t = { id: nextId++, hist: [], at: -1, view: document.createElement('div'), btn: document.createElement('button') };
+  const t = { id: nextId++, hist: [], at: -1, title: '', busy: false, view: document.createElement('div'), btn: document.createElement('button') };
   t.view.className = 'view'; viewsEl.appendChild(t.view);
-  t.btn.className = 'tab';
-  t.btn.onclick = e => { if (e.target.classList.contains('x')) closeTab(t); else show(t); };
+  t.btn.className = 'tab'; t.btn.type = 'button';
+  t.btn.onclick = e => { if (e.target.closest('.x')) closeTab(t); else show(t); };
   t.btn.onauxclick = e => { if (e.button === 1) closeTab(t); };
   tabsEl.insertBefore(t.btn, $('#newtab'));
   tabs.push(t); go(t, where); show(t);
@@ -323,369 +145,111 @@ function show(t) {
   cur = t;
   for (const o of tabs) { o.view.classList.toggle('on', o === t); o.btn.classList.toggle('on', o === t); }
   chrome();
-  focusPage();
+  if (here(t) === 'home') { const i = t.view.querySelector('.big input'); if (i && matchMedia('(pointer: fine)').matches) i.focus(); }
 }
 function go(t, where, keep) {
+  if (!where) return;
   if (!keep) { t.hist.length = t.at + 1; t.hist.push(where); t.at = t.hist.length - 1; }
-  render(t); hideSug();
-  if (t === cur) { chrome(); focusPage(); }
+  t.title = ''; render(t);
+  if (t === cur) chrome();
 }
-function here(t) { return t.hist[t.at]; }
-function hostOf(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } }
+function label(t) {
+  const w = here(t), home = w === 'home';
+  t.btn.innerHTML = (t.busy ? '<span class="spin"></span>' : `<img class="fav" src="${home ? 'icon.png' : esc(favOf(w))}" alt="" referrerpolicy="no-referrer">`)
+    + `<span class="name">${esc(home ? 'New tab' : t.title || hostOf(w))}</span><span class="x" title="Close tab">&times;</span>`;
+}
 function render(t) {
-  const w = here(t), g = byId(w);
-  t.view.innerHTML = '';
-  if (g) {
-    const f = document.createElement('iframe');
-    f.allow = 'fullscreen; gamepad; autoplay';
-    f.src = `g/${g.id}/${g.page}`;
-    t.view.appendChild(f);
-    t.btn.innerHTML = `<span class="dot" style="background:${grad(g)}"></span><span class="name">${esc(g.name)}</span><span class="x" title="Close tab">&times;</span>`;
-  } else if (w.startsWith('search:')) {
-    // web search is just Google itself, running in the tab (its own embeddable mode). No server, no proxy.
-    const q = w.slice(7), f = document.createElement('iframe');
-    f.className = 'goog';
-    f.referrerPolicy = 'no-referrer';
-    t.view.appendChild(f);
-    proxyReady.then(() => {
-      if (here(t) !== w) return;
-      // with the protected browser running, search inside it so the results open protected too
-      // (DuckDuckGo: Google answers a proxy with a "prove you are human" test)
-      if (PROXY) { t.hist[t.at] = 'web:https://duckduckgo.com/?q=' + encodeURIComponent(q); render(t); if (t === cur) chrome(); }
-      else f.src = 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(q);
-    });
-    t.btn.innerHTML = `<span class="dot look"></span><span class="name">${esc(q)}</span><span class="x" title="Close tab">&times;</span>`;
-  } else if (w.startsWith('web:')) {
-    // Another website, shown inside the tab. Many sites refuse to be shown inside another page (the frame stays
-    // blank), so a slim bar above it always offers the real thing in a real browser tab.
-    const url = w.slice(4), host = hostOf(url);
-    const box = document.createElement('div');
-    box.className = 'web';
-    box.innerHTML = `<div class="wbar"><img class="fav" src="https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(host)}" alt="" referrerpolicy="no-referrer"><span>${esc(host)}</span><em>Blank page? This site does not allow being shown here.</em><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Open in a real tab</a></div>`;
-    const f = document.createElement('iframe');
-    f.allow = 'fullscreen; autoplay';
-    f.referrerPolicy = 'no-referrer';
-    box.appendChild(f);
-    proxyReady.then(() => {
-      if (PROXY) {
-        // through the proxy: scripts and forms work, but no downloads, no camera/mic/location, no taking over this window
-        f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
-        f.dataset.proxied = '1'; f.dataset.first = '1';
-        box.querySelector('em').innerHTML = '<b class="shield">&#128737; Protected</b> Downloads are blocked. Avoid typing passwords for important accounts here.';
-        f.src = PROXY + '/go.html#' + encodeURIComponent(url);
-      } else {
-        // the site can run and use its own logins, but cannot take over this window
-        f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation';
-        f.src = url;
-      }
-    });
-    t.view.appendChild(box);
-    t.btn.innerHTML = `<img class="dot" src="https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(host)}" alt="" referrerpolicy="no-referrer"><span class="name">${esc(host)}</span><span class="x" title="Close tab">&times;</span>`;
-  } else if (w.startsWith('wiki:')) {
-    const title = w.slice(5), f = document.createElement('iframe');
-    // the article is fetched and shown as its own closed-off page (it cannot touch this site)
-    const name = encodeURIComponent(title.replace(/ /g, '_'));
-    f.sandbox = 'allow-scripts allow-popups allow-popups-to-escape-sandbox';
-    fetch('https://en.wikipedia.org/api/rest_v1/page/mobile-html/' + name).then(r => { if (!r.ok) throw 0; return r.text(); })
-      .then(html => { f.srcdoc = html.replace(/<head>/i, '<head><base href="https://en.wikipedia.org/wiki/" target="_blank">'); })
-      .catch(() => { f.removeAttribute('sandbox'); f.src = 'https://en.wikipedia.org/wiki/' + name; });
-    t.view.appendChild(f);
-    t.btn.innerHTML = `<span class="dot look"></span><span class="name">${esc(title)}</span><span class="x" title="Close tab">&times;</span>`;
-  } else {
-    t.view.appendChild(home(t));
-    t.btn.innerHTML = `<img class="dot" src="icon.png" alt=""><span class="name">Home</span><span class="x" title="Close tab">&times;</span>`;
-  }
+  const w = here(t);
+  t.view.innerHTML = ''; t.busy = false;
+  if (w === 'home') { t.view.appendChild(startPage(t)); label(t); return; }
+  const f = document.createElement('iframe');
+  f.allow = 'fullscreen; autoplay';
+  f.referrerPolicy = 'no-referrer';
+  t.view.appendChild(f); t.busy = true; label(t);
+  f.addEventListener('load', () => { t.busy = false; label(t); });
+  proxyReady.then(() => {
+    if (here(t) !== w || !f.isConnected) return;
+    if (PROXY) {
+      // scripts and forms work; no downloads, no camera/mic/location, no taking over this window
+      f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
+      f.dataset.proxied = '1'; f.dataset.first = '1';
+      f.src = PROXY + '/go.html#' + encodeURIComponent(w);
+    } else {
+      // no proxy reachable: try the site directly. Many sites refuse to be shown inside another page.
+      f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
+      f.src = w;
+      const n = document.createElement('div'); n.className = 'note';
+      n.innerHTML = `<span>The proxy is offline, so some sites stay blank.</span><a href="${esc(w)}" target="_blank" rel="noopener noreferrer">Open in a real tab</a>`;
+      t.view.appendChild(n);
+    }
+    if (t === cur) chrome();
+  });
 }
+// the proxied page reports where it really is, so the address bar, tab and Back button follow it
+addEventListener('message', e => {
+  if (!PROXY || e.origin !== PROXY || !e.data || e.data.sdcw !== 'nav' || !/^https?:\/\//.test(e.data.url)) return;
+  const t = tabs.find(o => { const f = o.view.querySelector('iframe[data-proxied]'); return f && f.contentWindow === e.source; });
+  if (!t) return;
+  const f = t.view.querySelector('iframe[data-proxied]'), url = e.data.url;
+  if (f.dataset.first) { delete f.dataset.first; f.dataset.t0 = Date.now(); t.hist[t.at] = url; }
+  else if (Date.now() - f.dataset.t0 < 2500) t.hist[t.at] = url;        // an instant hop is a redirect, not a new page (keeps Back from bouncing)
+  else if (!sameUrl(here(t), url)) { t.hist.length = t.at + 1; t.hist.push(url); t.at = t.hist.length - 1; }
+  t.title = e.data.title || ''; t.busy = false; label(t);
+  if (t === cur) chrome();
+});
 function chrome() {
   if (!cur) return;
-  const w = here(cur);
-  if (document.activeElement !== addr) addr.value = w === 'home' ? '' : w.startsWith('web:') ? w.slice(4) : w.startsWith('search:') ? w.slice(7) : w.startsWith('wiki:') ? w.slice(5) : 'arcade://' + w;
+  const w = here(cur), home = w === 'home';
+  if (document.activeElement !== addr) addr.value = home ? '' : w;
   $('#back').disabled = cur.at <= 0;
   $('#fwd').disabled = cur.at >= cur.hist.length - 1;
-  $('#rHome').classList.toggle('on', w === 'home');
-  document.title = (byId(w) ? byId(w).name + ' - ' : w.startsWith('web:') ? hostOf(w.slice(4)) + ' - ' : w.includes(':') ? w.slice(w.indexOf(':') + 1) + ' - ' : '') + 'superdupercoolerwebsite';
-}
-// keys go to the game as soon as it is on screen
-function focusPage() {
-  if (!cur) return;
-  const f = cur.view.querySelector('iframe');
-  if (f) { f.focus(); f.addEventListener('load', () => { if (cur && cur.view.contains(f) && document.activeElement !== addr) f.focus(); }, { once: true }); }
+  $('#reload').disabled = home; $('#real').disabled = home;
+  chip.hidden = home;
+  chip.classList.toggle('off', !PROXY);
+  chip.querySelector('span').textContent = PROXY ? 'Protected' : 'Direct';
+  chip.title = PROXY ? 'Opened through the proxy. Downloads are blocked. Avoid typing passwords for important accounts here.' : 'The proxy is offline, so this page is loaded directly.';
+  document.title = (home ? '' : (cur.title || hostOf(w)) + ' - ') + 'superdupercoolerwebsite';
 }
 
-// ---------- the home page ----------
-const CATS = [['All', ''], ['Racing', 'racing car drift rally road'], ['Arcade', 'arcade retro runner platformer classic jump'], ['Sports', 'sports basketball hockey football'], ['Chill', 'cozy idle clicker sandbox adventure']];
-function home(t) {
-  const el = document.createElement('div');
-  el.className = 'home';
-  el.innerHTML = `<div class="hero"><div class="heroGlow"></div>
-      <img class="mark" src="logo.png" alt="superdupercoolerwebsite">
-      <p class="sub"><b>${GAMES.length} games</b> &middot; search the web &middot; browse any site</p>
-      <div class="bigWrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
-        <input class="big" placeholder="Search games" spellcheck="false" autocomplete="off"></div></div>
-    <div class="shelf"><div class="chips"></div><div class="grid"></div></div>`;
-  const box = el.querySelector('.big'), grid = el.querySelector('.grid'), chips = el.querySelector('.chips');
-  let cat = '';
-  const inCat = g => { if (!cat) return true; const hay = (g.tags + ' ' + g.id + ' ' + g.name).toLowerCase(); return cat.split(' ').some(w => hay.includes(w)); };
-  const fill = () => {
-    const list = search(box.value).filter(inCat);
-    grid.innerHTML = list.length ? '' : `<div class="empty">No game matches${box.value ? ` "${esc(box.value)}"` : ' that'}. Try the search bar at the top for the web.</div>`;
-    for (const g of list) {
-      const c = document.createElement('button');
-      c.className = 'card';
-      c.title = g.name;
-      // the picture fills the whole square; games that have no picture yet show their name on a colour tile instead
-      c.innerHTML = g.art
-        ? `<div class="art pic" style="background-image:url('${g.art}')" role="img" aria-label="${esc(g.name)}"></div>`
-        : `<div class="art" style="background:${grad(g)}"><span>${esc(g.name)}</span></div>`;
-      c.onclick = e => { if (e.ctrlKey || e.metaKey) newTab(g.id); else go(t, g.id); };
-      c.onauxclick = e => { if (e.button === 1) { const was = cur; newTab(g.id); show(was); } };
-      grid.appendChild(c);
-    }
-  };
-  chips.innerHTML = CATS.map(([n, tg], i) => `<button class="chip${i === 0 ? ' on' : ''}" data-t="${tg}">${n}</button>`).join('');
-  chips.onclick = e => { const b = e.target.closest('.chip'); if (!b) return; cat = b.dataset.t; for (const o of chips.children) o.classList.toggle('on', o === b); fill(); };
-  box.oninput = fill;
-  box.onkeydown = e => { if (e.key === 'Enter') { const l = search(box.value).filter(inCat); if (l.length) go(t, l[0].id); else if (box.value.trim()) go(t, 'search:' + box.value.trim()); } };
-  fill();
+/* ---------- new tab page ---------- */
+function startPage(t) {
+  const el = document.createElement('div'); el.className = 'start';
+  el.innerHTML = `<img class="logo" src="logo.png" alt="superdupercoolerwebsite">
+    <div class="tag">A browser inside your browser.</div>
+    <form class="big"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.500-3.500"/></svg><input placeholder="Search or type a web address" spellcheck="false" autocapitalize="off" enterkeyhint="go"></form>
+    <div class="tiles">${SHORTCUTS.map(([n, u]) => `<button class="tile" type="button" data-u="${esc(u)}"><img src="${esc(favOf(u))}" alt="" referrerpolicy="no-referrer">${esc(n)}</button>`).join('')}</div>
+    <div class="status"></div>`;
+  el.querySelector('form').onsubmit = e => { e.preventDefault(); go(t, toUrl(el.querySelector('input').value)); };
+  el.querySelector('.tiles').onclick = e => { const b = e.target.closest('.tile'); if (b) go(t, b.dataset.u); };
+  proxyReady.then(() => {
+    el.querySelector('.status').innerHTML = PROXY
+      ? '<b>&#9679; Protected</b> Pages open through the proxy. Downloads are blocked.'
+      : '<b class="off">&#9679; Proxy offline</b> Pages load directly, and many sites will stay blank.';
+  });
   return el;
 }
 
-// ---------- our own search page ----------
-// The familiar search-engine layout (logo + box, tabs, results, side panel), in this site's colours and with its logo.
-// The results come from Google through the search server (search.json). Without the server it falls back to Wikipedia.
-let SEARCH_API = '', why = '';
-const SEEN = new Map();
-const ready = Promise.resolve();   // web search goes straight to Google now; the old search server is not used
-function results(t, q) {
-  const el = document.createElement('div');
-  el.className = 'home srp';
-  el.innerHTML = `<div class="shead"><button class="slogo" title="Home"><img src="logo.png" alt="superdupercoolerwebsite"></button>
-      <form class="sbox"><input value="${esc(q)}" spellcheck="false" autocomplete="off" aria-label="Search"><button type="submit" title="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg></button></form></div>
-    <div class="stabs"><button data-k="" class="on">All</button><button data-k="images">Images</button><button data-k="videos">Videos</button><button data-k="news">News</button></div>
-    <div class="sbody"><div class="smain"><div class="list"></div><div class="pager"></div></div><aside class="side"></aside></div>`;
-  const list = el.querySelector('.list'), side = el.querySelector('.side'), pager = el.querySelector('.pager'), tabsRow = el.querySelector('.stabs');
-  let kind = '', page = 1;
-  const http = u => /^https?:\/\//.test(u || '');
-  const crumb = u => { try { const x = new URL(u); return x.hostname.replace(/^www\./, '') + x.pathname.split('/').filter(Boolean).slice(0, 2).map(p => ' › ' + decodeURIComponent(p).slice(0, 24)).join(''); } catch (e) { return u; } };
-  const none = msg => { list.innerHTML = `<div class="empty">${msg}</div>`; };
-  const ext = (cls, href, html) => `<a class="${cls}" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${html}</a>`;
-  el.querySelector('.slogo').onclick = () => go(t, 'home');
-  el.addEventListener('click', e => {
-    const a = e.target.closest('a[target="_blank"]');
-    if (!a || e.button || e.ctrlKey || e.metaKey || e.shiftKey || !/^https?:/.test(a.href)) return;
-    e.preventDefault(); go(t, 'web:' + a.href);
-  });
-  el.querySelector('.sbox').onsubmit = e => { e.preventDefault(); const v = e.target.querySelector('input').value.trim(); if (v && v !== q) go(t, 'search:' + v); };
-
-  const wiki = () => {
-    tabsRow.hidden = true;
-    const note = why ? `<div class="note">Web search did not answer (${esc(why)}), so these are from Wikipedia. <button>Try again</button></div>` : '';
-    const url = 'https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=12&prop=pageimages%7Cextracts&exintro=1&explaintext=1&exsentences=2&exlimit=12&piprop=thumbnail&pithumbsize=160&format=json&origin=*&gsrsearch=' + encodeURIComponent(q);
-    return fetch(url).then(r => r.json()).then(j => {
-      const pages = Object.values((j.query && j.query.pages) || {}).sort((a, b) => a.index - b.index);
-      if (!pages.length) return none(`Nothing found for "${esc(q)}".`);
-      list.innerHTML = note;
-      const again = list.querySelector('.note button'); if (again) again.onclick = () => { tabsRow.hidden = false; run(); };
-      for (const pg of pages) {
-        const d = document.createElement('div');
-        d.className = 'g';
-        d.innerHTML = `<span class="gsite"><span class="fav none">W</span><span><b>Wikipedia</b><i>en.wikipedia.org</i></span></span><button class="gt">${esc(pg.title)}</button><p>${esc(pg.extract || '')}</p>`;
-        d.querySelector('.gt').onclick = () => go(t, 'wiki:' + pg.title);
-        list.appendChild(d);
-      }
-    }).catch(() => none('Could not reach the search service. Check your connection.'));
-  };
-
-  // answers already fetched this visit are kept, so going Back to a search does not spend another one
-  const ask = () => { const k = kind + '|' + page + '|' + q; return SEEN.has(k) ? Promise.resolve(SEEN.get(k)) : ask0().then(j => { if (j.results) SEEN.set(k, j); return j; }); };
-  const ask0 = () => fetch(SEARCH_API + (SEARCH_API.includes('?') ? '&' : '?') + 'q=' + encodeURIComponent(q) + (kind ? '&t=' + kind : '') + (page > 1 ? '&p=' + page : ''))
-    .then(r => r.ok ? r.json() : r.json().catch(() => ({})).then(j => { throw new Error('server said ' + r.status + (j.error ? ': ' + j.error : '')); }), () => { throw new Error('this device could not reach the search server'); });
-  const web = () => ask().catch(e => /could not reach/.test(e.message) ? new Promise(r => setTimeout(r, 700)).then(ask) : Promise.reject(e)).then(j => {
-    if (!j.results) throw new Error('empty answer');
-    const ok = j.results.filter(x => http(x.url));
-    list.className = 'list' + (kind === 'images' ? ' pics' : '');
-    side.innerHTML = ''; pager.innerHTML = '';
-    if (!ok.length) return none(page > 1 ? 'No more results.' : `Nothing found for "${esc(q)}".`);
-    const fav = x => `<img class="fav" src="https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(x.site)}" alt="" referrerpolicy="no-referrer">`;
-    if (kind === 'images') {
-      list.innerHTML = ok.filter(x => x.thumb).map(x => ext('pic', x.url, `<img src="${esc(x.thumb)}" alt="${esc(x.title)}" loading="lazy" referrerpolicy="no-referrer"><span>${esc(x.title)}</span><i>${esc(x.site)}</i>`)).join('');
-    } else {
-      list.innerHTML = ok.map(x => `<div class="g${x.thumb && kind ? ' wide' : ''}">${x.thumb && kind ? ext('gpic', x.url, `<img src="${esc(x.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer">${x.extra && kind === 'videos' ? `<em>${esc(x.extra)}</em>` : ''}`) : ''}<div>${ext('gsite', x.url, `${fav(x)}<span><b>${esc(x.site)}</b><i>${esc(crumb(x.url))}</i></span>`)}${ext('gt', x.url, esc(x.title))}<p>${x.extra && kind !== 'videos' ? `<span class="when">${esc(x.extra)} — </span>` : ''}${esc(x.text)}</p></div></div>`).join('');
-      // the short answer: beside the results when there is room, above them on a narrow screen
-      const an = j.answer;
-      if (an && an.text && page === 1) side.innerHTML = `<div class="ans">${an.thumb ? `<img src="${esc(an.thumb)}" alt="" referrerpolicy="no-referrer">` : ''}${an.title ? `<b>${esc(an.title)}</b>` : ''}<p>${esc(an.text)}</p>${http(an.url) ? ext('', an.url, esc(crumb(an.url))) : ''}</div>`;
-      if (j.paa && j.paa.length && page === 1) list.insertAdjacentHTML('beforeend', `<div class="paa"><h3>People also ask</h3>${j.paa.map(p => `<details><summary>${esc(p.question)}</summary><p>${esc(p.text)}</p>${http(p.url) ? ext('', p.url, esc(p.title || crumb(p.url))) : ''}</details>`).join('')}</div>`);
-      if (j.related && j.related.length) {
-        const r = document.createElement('div');
-        r.className = 'rel';
-        r.innerHTML = `<h3>Related searches</h3>` + j.related.map(x => `<button>${esc(x)}</button>`).join('');
-        r.onclick = e => { const b = e.target.closest('button'); if (b) go(t, 'search:' + b.textContent); };
-        list.appendChild(r);
-      }
-    }
-    pager.innerHTML = `${page > 1 ? '<button data-d="-1">‹ Previous</button>' : ''}<span>Page ${page}</span><button data-d="1">Next ›</button>`;
-  });
-
-  const run = () => {
-    list.className = 'list'; list.innerHTML = '<div class="empty">Searching...</div>'; side.innerHTML = ''; pager.innerHTML = ''; el.scrollTop = 0;
-    ready.then(() => {
-      if (!SEARCH_API) { why = ''; return wiki(); }
-      return web().catch(e => { why = (e && e.message) || 'unknown problem'; console.warn('web search failed:', why); return kind || page > 1 ? none('Could not get those results right now (' + esc(why) + ').') : wiki(); });
-    });
-  };
-  tabsRow.onclick = e => { const b = e.target.closest('button'); if (!b || b.dataset.k === kind) return; kind = b.dataset.k; page = 1; for (const o of tabsRow.children) o.classList.toggle('on', o === b); run(); };
-  pager.onclick = e => { const b = e.target.closest('button'); if (!b) return; page = Math.max(1, page + +b.dataset.d); run(); };
-  run();
-  return el;
-}
-
-// ---------- the address / search bar ----------
-function suggest() {
-  const q = addr.value.trim();
-  // the top bar only looks things up (games are searched with the box on the home page)
-  const site = /^(https?:\/\/)?([a-z0-9-]+\.)+[a-z]{2,}(\/\S*)?$/i.test(q) ? (/^https?:\/\//i.test(q) ? q : 'https://' + q) : '';
-  shown = site ? [{ where: 'web:' + site, html: `<span class="dot look"></span><b>${esc(q)}</b><span>Open this site</span>` }, { where: 'search:' + q, html: `<span class="dot look"></span><b>${esc(q)}</b><span>Search the web</span>` }]
-    : q && !/^arcade:/i.test(q) ? [{ where: 'search:' + q, html: `<span class="dot look"></span><b>${esc(q)}</b><span>Search the web</span>` }] : [];
-  sel = 0;
-  sug.innerHTML = shown.map((o, i) => `<button class="s${i === 0 ? ' on' : ''}" data-i="${i}">${o.html}</button>`).join('');
-  sug.classList.toggle('show', shown.length > 0);
-}
-function mark() { sug.querySelectorAll('.s').forEach((b, i) => b.classList.toggle('on', i === sel)); }
-function hideSug() { sug.classList.remove('show'); }
-addr.onfocus = () => { addr.select(); suggest(); };
-addr.oninput = suggest;
-addr.onblur = () => setTimeout(() => { hideSug(); chrome(); }, 120);
-addr.onkeydown = e => {
-  if (e.key === 'ArrowDown') { sel = Math.min(shown.length - 1, sel + 1); mark(); e.preventDefault(); }
-  else if (e.key === 'ArrowUp') { sel = Math.max(0, sel - 1); mark(); e.preventDefault(); }
-  else if (e.key === 'Escape') { addr.blur(); hideSug(); focusPage(); }
-  else if (e.key === 'Enter') {
-    const q = addr.value.trim().toLowerCase();
-    const where = q === '' || q === 'home' || q === 'arcade://home' ? 'home' : shown[sel] ? shown[sel].where : null;
-    if (where) { addr.blur(); hideSug(); if (here(cur) !== where) go(cur, where); else focusPage(); }
-  }
-};
-sug.onmousedown = e => {
-  const b = e.target.closest('.s[data-i]'); if (!b) return;
-  e.preventDefault(); addr.blur(); go(cur, shown[+b.dataset.i].where);
-};
-
-// ---------- buttons ----------
-$('#newtab').onclick = () => { newTab(); addr.focus(); };
+/* ---------- toolbar ---------- */
+$('#newtab').onclick = () => newTab();
 $('#back').onclick = () => { if (cur.at > 0) { cur.at--; go(cur, here(cur), true); } };
 $('#fwd').onclick = () => { if (cur.at < cur.hist.length - 1) { cur.at++; go(cur, here(cur), true); } };
 $('#reload').onclick = () => go(cur, here(cur), true);
-$('#homeBtn').onclick = () => { if (here(cur) !== 'home') go(cur, 'home'); };
-$('#rHome').onclick = () => { if (here(cur) !== 'home') go(cur, 'home'); else cur.view.querySelector('.home').scrollTo({ top: 0, behavior: 'smooth' }); };
-$('#rGames').onclick = () => { if (here(cur) !== 'home') go(cur, 'home'); requestAnimationFrame(() => { const s = cur.view.querySelector('.shelf'); if (s) s.scrollIntoView({ behavior: 'smooth' }); }); };
-$('#rSearch').onclick = () => addr.focus();
-$('#full').onclick = () => { const f = cur.view.querySelector('iframe') || document.documentElement; if (document.fullscreenElement) document.exitFullscreen(); else f.requestFullscreen().then(() => f.focus && f.focus()).catch(() => {}); };
-
-// theme picker popover
-const pop = document.createElement('div'); pop.id = 'themePop';
-pop.innerHTML = Object.keys(THEMES).map(k => `<button data-k="${k}" title="${k}" style="background:linear-gradient(135deg,${THEMES[k][0]},${THEMES[k][1]})"></button>`).join('');
-document.body.appendChild(pop);
-$('#rTheme').onclick = e => { e.stopPropagation(); pop.classList.toggle('show'); };
-pop.onclick = e => { const b = e.target.closest('button[data-k]'); if (b) { setTheme(b.dataset.k); pop.classList.remove('show'); } };
-addEventListener('click', e => { if (!pop.contains(e.target) && e.target !== $('#rTheme') && !$('#rTheme').contains(e.target)) pop.classList.remove('show'); });
-
-// ---------- AI assistant (free: no account, no key, no server; uses Pollinations' public API) ----------
-const ai = document.createElement('div'); ai.id = 'ai';
-ai.innerHTML = `<div class="ai-head"><span class="ai-dot"></span><b>Assistant</b><button class="ai-clear" title="New chat">&#x21bb;</button><button class="ai-x" title="Close">&times;</button></div>
-  <div class="ai-log"></div>
-  <form class="ai-in"><textarea rows="1" placeholder="Ask me anything…" spellcheck="false"></textarea><button type="submit" title="Send"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-6-7-2z"/></svg></button></form>`;
-document.body.appendChild(ai);
-const aiLog = ai.querySelector('.ai-log'), aiBox = ai.querySelector('textarea');
-let aiMsgs = [], aiBusy = false;
-// The assistant can also DO things inside this site. It replies with a small JSON action and the site carries it out.
-function aiSys() {
-  return { role: 'system', content:
-    "You are the assistant inside superdupercoolerwebsite, a custom web browser made by its owner. You can chat normally, OR do one thing in the browser by replying with ONLY a JSON object (no other text).\n" +
-    'Actions you can use:\n' +
-    '{"action":"open_game","arg":"<game name>","say":"short confirmation"}\n' +
-    '{"action":"search_web","arg":"<what to look up>","say":"..."}\n' +
-    '{"action":"open_site","arg":"<website or address>","say":"..."}\n' +
-    '{"action":"set_theme","arg":"violet|pink|ocean|toxic|blood|ice","say":"..."}\n' +
-    '{"action":"compose_email","to":"someone@example.com","subject":"...","body":"...","say":"..."}\n' +
-    '{"action":"go_home","say":"..."}\n' +
-    '{"action":"new_tab","say":"..."}\n' +
-    '{"action":"list_games","say":"..."}\n' +
-    "The games on this site are: " + (GAMES.map(g => g.name).join(', ') || '(loading)') + ".\n" +
-    "If the user asks you to open, look up, go to, or change something here, reply with the matching JSON and nothing else. For questions or chat, reply with plain text. Keep chat clear and fairly short. Never mention being an AI model or a company." };
-}
-function aiAct(a) {
-  const arg = (a.arg || '').toString().trim(), say = a.say;
-  const find = n => { const q = n.toLowerCase(); return GAMES.find(g => g.id === q || g.name.toLowerCase() === q) || search(n)[0]; };
-  switch (a.action) {
-    case 'open_game': { const g = find(arg); if (g) { go(cur, g.id); return say || ('Opening ' + g.name + '.'); } return "I couldn't find a game called \"" + arg + "\"."; }
-    case 'search_web': if (arg) { go(cur, 'search:' + arg); return say || ('Looking up “' + arg + '”.'); } return '';
-    case 'open_site': { let u = arg; if (!/^https?:\/\//i.test(u)) u = 'https://' + u.replace(/^\/+/, ''); go(cur, 'web:' + u); return say || ('Opening ' + hostOf(u) + '.'); }
-    case 'set_theme': { const k = arg.toLowerCase(); if (THEMES[k]) { setTheme(k); return say || ('Theme set to ' + k + '.'); } return 'The themes are: ' + Object.keys(THEMES).join(', ') + '.'; }
-    case 'compose_email': {
-      const to = (a.to || '').trim(), su = (a.subject || '').trim(), bo = (a.body || '').trim();
-      // opens Gmail's own compose window already filled in; the person reviews it and presses Send themselves
-      const url = 'https://mail.google.com/mail/?view=cm&fs=1' + (to ? '&to=' + encodeURIComponent(to) : '') + (su ? '&su=' + encodeURIComponent(su) : '') + '&body=' + encodeURIComponent(bo);
-      window.open(url, '_blank', 'noopener');
-      return say || ('I opened a Gmail draft' + (to ? ' to ' + to : '') + ' with your message. Look it over and press Send — I never send it for you.');
-    }
-    case 'go_home': go(cur, 'home'); return say || 'Back to the home page.';
-    case 'new_tab': newTab('home'); return say || 'Opened a new tab.';
-    case 'list_games': return 'The games are: ' + GAMES.map(g => g.name).join(', ') + '.';
-    default: return say || null;
-  }
-}
-function aiParse(text) { const m = text.match(/\{[\s\S]*\}/); if (!m) return null; try { const o = JSON.parse(m[0]); if (o && o.action) return o; } catch (e) {} return null; }
-function aiRender() {
-  const rows = aiMsgs.filter(m => m.role !== 'system');
-  aiLog.innerHTML = (rows.length ? rows.map(m => `<div class="ai-msg ${m.role === 'user' ? 'user' : 'bot'}">${esc(m.content)}</div>`).join('')
-    : `<div class="ai-hello"><b>Hi! I'm your assistant.</b><br>Ask me anything — it's free, with no account.</div>`)
-    + (aiBusy ? '<div class="ai-msg bot ai-typing"><span></span><span></span><span></span></div>' : '');
-  aiLog.scrollTop = aiLog.scrollHeight;
-}
-function aiOpen(v) { const open = v === undefined ? !ai.classList.contains('open') : v; ai.classList.toggle('open', open); $('#rAI').classList.toggle('on', open); if (open) aiBox.focus(); }
-async function aiSend(text) {
-  text = text.trim(); if (!text || aiBusy) return;
-  aiMsgs.push({ role: 'user', content: text }); aiBusy = true; aiBox.value = ''; aiBox.style.height = ''; aiRender();
-  try {
-    const r = await fetch('https://text.pollinations.ai/openai', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'openai', messages: [aiSys(), ...aiMsgs] }) });
-    if (!r.ok) {
-      let secs = '';
-      try { const j = await r.json(); const mm = ((j.error && j.error.message) || '').match(/Retry after (\d+)/i); if (mm) secs = mm[1]; } catch (e) {}
-      throw new Error((r.status === 402 || r.status === 429) ? 'RATE:' + (secs || '45') : 'status ' + r.status);
-    }
-    const j = await r.json();
-    const out = ((j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '').trim();
-    const act = aiParse(out);
-    const done = act ? aiAct(act) : null;
-    aiMsgs.push({ role: 'assistant', content: done || out || 'Sorry, I had nothing to say there. Try asking again.' });
-  } catch (e) {
-    const m = String(e.message || '');
-    aiMsgs.push({ role: 'assistant', content: m.startsWith('RATE:')
-      ? 'The free assistant is busy (it allows about one message every 45 seconds). Try again in ' + m.slice(5) + ' seconds.'
-      : "I couldn't reach the assistant just now. Check your internet — some networks (like hotel Wi-Fi) block it." });
-  }
-  aiBusy = false; aiRender();
-}
-ai.querySelector('.ai-in').onsubmit = e => { e.preventDefault(); aiSend(aiBox.value); };
-aiBox.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); aiSend(aiBox.value); } };
-aiBox.oninput = () => { aiBox.style.height = 'auto'; aiBox.style.height = Math.min(120, aiBox.scrollHeight) + 'px'; };
-ai.querySelector('.ai-x').onclick = () => aiOpen(false);
-ai.querySelector('.ai-clear').onclick = () => { aiMsgs = []; aiRender(); aiBox.focus(); };
-$('#rAI').onclick = () => aiOpen();
-aiRender();
-
+$('#home').onclick = () => go(cur, 'home');
+$('#real').onclick = () => { const w = here(cur); if (w !== 'home') window.open(w, '_blank', 'noopener,noreferrer'); };
+$('#full').onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); };
+$('#box').onsubmit = e => { e.preventDefault(); const u = toUrl(addr.value); if (u) { addr.blur(); go(cur, u); } };
+addr.onfocus = () => addr.select();
+addr.onblur = () => chrome();
 addEventListener('keydown', e => {
-  if ((e.ctrlKey && e.key.toLowerCase() === 'l') || (e.key === '/' && !/INPUT|TEXTAREA/.test(document.activeElement.tagName))) { e.preventDefault(); addr.focus(); }
-  if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 't') { e.preventDefault(); newTab(); addr.focus(); }
-  if (e.ctrlKey && e.key.toLowerCase() === 'j') { e.preventDefault(); aiOpen(); }
+  if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); $('#back').click(); }
+  else if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); $('#fwd').click(); }
+  else if (e.key === 'Escape' && document.activeElement === addr) addr.blur();
 });
 
-fetch('games.json', { cache: 'no-cache' }).then(r => r.json()).then(list => {
-  GAMES = list;
-  const want = decodeURIComponent(location.hash.slice(1));
-  newTab(byId(want) ? want : 'home');
-});
+window.SDCW = { tabs, go, newTab, toUrl, proxyReady, get cur() { return cur; }, get PROXY() { return PROXY; } };   // for testing
+const first = new URLSearchParams(location.search).get('q');
+newTab(first ? toUrl(first) : 'home');
+if (first) history.replaceState(null, '', location.pathname);
 </script>
 </body>
 </html>
