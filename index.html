@@ -72,6 +72,7 @@
   .res { max-width: 820px; padding-top: 28px; }
   .rq { margin: 0 0 18px; font-size: 26px; font-weight: 800; overflow-wrap: anywhere; }
   .list { display: flex; flex-direction: column; gap: 10px; }
+  a.r { text-decoration: none; color: inherit; }
   .r { display: flex; gap: 14px; align-items: flex-start; width: 100%; text-align: left; padding: 12px; border-radius: 14px; background: #1c1e28; border: 1px solid #2a2d3c; }
   .r:hover, .r:focus-visible { border-color: var(--acc); outline: 0; }
   .rp { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; flex: none; display: grid; place-items: center; }
@@ -228,7 +229,9 @@ function home(t) {
 }
 
 // ---------- looking something up ----------
-// Answers come straight from Wikipedia's public search (no Google, no key, no account). Your own games that match are listed first.
+// With the search server set (search.json), results come from the whole web through it. Without it, or if it fails,
+// answers come straight from Wikipedia's public search. Your own games that match are always listed first.
+let SEARCH_API = '';
 function results(t, q) {
   const el = document.createElement('div');
   el.className = 'home';
@@ -244,18 +247,29 @@ function results(t, q) {
     return b;
   };
   const mine = search(q).map(g => row(`<span class="rp" style="background:${g.art ? `center/cover url('${g.art}')` : grad(g)}"></span>`, g.name, g.about, 'Game on this site', g.id));
-  const url = 'https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=12&prop=pageimages%7Cextracts&exintro=1&explaintext=1&exsentences=2&exlimit=12&piprop=thumbnail&pithumbsize=160&format=json&origin=*&gsrsearch=' + encodeURIComponent(q);
-  fetch(url).then(r => r.json()).then(j => {
-    const pages = Object.values((j.query && j.query.pages) || {}).sort((a, b) => a.index - b.index);
-    list.innerHTML = '';
-    for (const b of mine) list.appendChild(b);
-    for (const pg of pages) list.appendChild(row(pg.thumbnail ? `<img class="rp" src="${esc(pg.thumbnail.source)}" alt="">` : `<span class="rp none">${esc(pg.title[0])}</span>`, pg.title, pg.extract || '', 'Wikipedia', 'wiki:' + pg.title));
-    if (!mine.length && !pages.length) list.innerHTML = `<div class="empty">Nothing found for "${esc(q)}". Try other words, or one of the search sites below.</div>`;
-  }).catch(() => {
-    list.innerHTML = '';
-    for (const b of mine) list.appendChild(b);
-    list.insertAdjacentHTML('beforeend', `<div class="empty">Could not reach the look-up service. Check your connection, or use one of the search sites below.</div>`);
+  const put = rows => { list.innerHTML = ''; for (const b of mine) list.appendChild(b); for (const b of rows) list.appendChild(b); };
+  const none = msg => list.insertAdjacentHTML('beforeend', `<div class="empty">${msg}</div>`);
+  // a result from the web is a real link: it opens the real site in a new browser tab
+  const link = x => {
+    const a = document.createElement('a');
+    a.className = 'r'; a.href = x.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.innerHTML = `${x.thumb ? `<img class="rp" src="${esc(x.thumb)}" alt="" referrerpolicy="no-referrer">` : `<span class="rp none">${esc((x.site || x.title || '?').replace(/^www\./, '')[0].toUpperCase())}</span>`}<span class="rt"><b>${esc(x.title)}</b><em>${esc(x.site || x.url)}</em><span>${esc(x.text)}</span></span>`;
+    return a;
+  };
+  const wiki = () => {
+    const url = 'https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=12&prop=pageimages%7Cextracts&exintro=1&explaintext=1&exsentences=2&exlimit=12&piprop=thumbnail&pithumbsize=160&format=json&origin=*&gsrsearch=' + encodeURIComponent(q);
+    return fetch(url).then(r => r.json()).then(j => {
+      const pages = Object.values((j.query && j.query.pages) || {}).sort((a, b) => a.index - b.index);
+      put(pages.map(pg => row(pg.thumbnail ? `<img class="rp" src="${esc(pg.thumbnail.source)}" alt="">` : `<span class="rp none">${esc(pg.title[0])}</span>`, pg.title, pg.extract || '', 'Wikipedia', 'wiki:' + pg.title)));
+      if (!mine.length && !pages.length) none(`Nothing found for "${esc(q)}". Try other words, or one of the search sites below.`);
+    }).catch(() => { put([]); none('Could not reach the look-up service. Check your connection, or use one of the search sites below.'); });
+  };
+  const web = () => fetch(SEARCH_API + (SEARCH_API.includes('?') ? '&' : '?') + 'q=' + encodeURIComponent(q)).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => {
+    if (!j.results) throw 0;
+    put(j.results.filter(x => /^https?:\/\//.test(x.url)).map(link));
+    if (!mine.length && !j.results.length) none(`Nothing found for "${esc(q)}".`);
   });
+  if (SEARCH_API) web().catch(wiki); else wiki();
   return el;
 }
 
@@ -301,6 +315,7 @@ addEventListener('keydown', e => {
   if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 't') { e.preventDefault(); newTab(); addr.focus(); }
 });
 
+fetch('search.json', { cache: 'no-cache' }).then(r => r.json()).then(c => { SEARCH_API = c.api || ''; }).catch(() => {});
 fetch('games.json', { cache: 'no-cache' }).then(r => r.json()).then(list => {
   GAMES = list;
   const want = decodeURIComponent(location.hash.slice(1));
