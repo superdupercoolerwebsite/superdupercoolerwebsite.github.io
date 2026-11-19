@@ -49,6 +49,14 @@
   .view.on { display: block; }
   iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
   .home { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; background: radial-gradient(1200px 600px at 50% -10%, #262b45 0%, var(--bg) 60%); }
+  /* the scroll bar: slim, rounded, in the logo's colours */
+  .home { scrollbar-width: thin; scrollbar-color: #8b5cf6 #0e0f13; }
+  .home::-webkit-scrollbar { width: 14px; }
+  .home::-webkit-scrollbar-track { background: #0e0f13; border-left: 1px solid #23263a; }
+  .home::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #ffb020, #29c8ff 50%, #ff4fd8); border-radius: 8px; border: 3px solid #0e0f13; min-height: 48px; }
+  .home::-webkit-scrollbar-thumb:hover { border-width: 2px; }
+  .home::-webkit-scrollbar-thumb:active { border-width: 1px; }
+  @supports selector(::-webkit-scrollbar) { .home { scrollbar-width: auto; scrollbar-color: auto; } }
   .homeIn { max-width: 1120px; margin: 0 auto; padding: 40px 24px 60px; }
   .mark { display: block; width: min(640px, 100%); height: auto; margin: 0 auto 4px; filter: drop-shadow(0 10px 24px #0008); image-rendering: auto; }
   .logo { text-align: center; font-size: clamp(22px, 7.2vw, 44px); font-weight: 800; letter-spacing: -1.5px; margin: 0; }
@@ -237,7 +245,7 @@ addEventListener('keydown', e => {
   if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 't') { e.preventDefault(); newTab(); addr.focus(); }
 });
 
-fetch('games.json').then(r => r.json()).then(list => {
+fetch('games.json', { cache: 'no-cache' }).then(r => r.json()).then(list => {
   GAMES = list;
   const want = decodeURIComponent(location.hash.slice(1));
   newTab(byId(want) ? want : 'home');
