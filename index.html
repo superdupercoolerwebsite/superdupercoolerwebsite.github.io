@@ -555,8 +555,45 @@ ai.innerHTML = `<div class="ai-head"><span class="ai-dot"></span><b>Assistant</b
   <form class="ai-in"><textarea rows="1" placeholder="Ask me anything…" spellcheck="false"></textarea><button type="submit" title="Send"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-6-7-2z"/></svg></button></form>`;
 document.body.appendChild(ai);
 const aiLog = ai.querySelector('.ai-log'), aiBox = ai.querySelector('textarea');
-const SYS = { role: 'system', content: "You are the friendly assistant built into superdupercoolerwebsite, a custom web browser made by its owner. Keep answers clear and fairly short unless asked for more. Be helpful and warm. Do not mention which AI model or company you are." };
 let aiMsgs = [], aiBusy = false;
+// The assistant can also DO things inside this site. It replies with a small JSON action and the site carries it out.
+function aiSys() {
+  return { role: 'system', content:
+    "You are the assistant inside superdupercoolerwebsite, a custom web browser made by its owner. You can chat normally, OR do one thing in the browser by replying with ONLY a JSON object (no other text).\n" +
+    'Actions you can use:\n' +
+    '{"action":"open_game","arg":"<game name>","say":"short confirmation"}\n' +
+    '{"action":"search_web","arg":"<what to look up>","say":"..."}\n' +
+    '{"action":"open_site","arg":"<website or address>","say":"..."}\n' +
+    '{"action":"set_theme","arg":"violet|pink|ocean|toxic|blood|ice","say":"..."}\n' +
+    '{"action":"compose_email","to":"someone@example.com","subject":"...","body":"...","say":"..."}\n' +
+    '{"action":"go_home","say":"..."}\n' +
+    '{"action":"new_tab","say":"..."}\n' +
+    '{"action":"list_games","say":"..."}\n' +
+    "The games on this site are: " + (GAMES.map(g => g.name).join(', ') || '(loading)') + ".\n" +
+    "If the user asks you to open, look up, go to, or change something here, reply with the matching JSON and nothing else. For questions or chat, reply with plain text. Keep chat clear and fairly short. Never mention being an AI model or a company." };
+}
+function aiAct(a) {
+  const arg = (a.arg || '').toString().trim(), say = a.say;
+  const find = n => { const q = n.toLowerCase(); return GAMES.find(g => g.id === q || g.name.toLowerCase() === q) || search(n)[0]; };
+  switch (a.action) {
+    case 'open_game': { const g = find(arg); if (g) { go(cur, g.id); return say || ('Opening ' + g.name + '.'); } return "I couldn't find a game called \"" + arg + "\"."; }
+    case 'search_web': if (arg) { go(cur, 'search:' + arg); return say || ('Looking up “' + arg + '”.'); } return '';
+    case 'open_site': { let u = arg; if (!/^https?:\/\//i.test(u)) u = 'https://' + u.replace(/^\/+/, ''); go(cur, 'web:' + u); return say || ('Opening ' + hostOf(u) + '.'); }
+    case 'set_theme': { const k = arg.toLowerCase(); if (THEMES[k]) { setTheme(k); return say || ('Theme set to ' + k + '.'); } return 'The themes are: ' + Object.keys(THEMES).join(', ') + '.'; }
+    case 'compose_email': {
+      const to = (a.to || '').trim(), su = (a.subject || '').trim(), bo = (a.body || '').trim();
+      // opens Gmail's own compose window already filled in; the person reviews it and presses Send themselves
+      const url = 'https://mail.google.com/mail/?view=cm&fs=1' + (to ? '&to=' + encodeURIComponent(to) : '') + (su ? '&su=' + encodeURIComponent(su) : '') + '&body=' + encodeURIComponent(bo);
+      window.open(url, '_blank', 'noopener');
+      return say || ('I opened a Gmail draft' + (to ? ' to ' + to : '') + ' with your message. Look it over and press Send — I never send it for you.');
+    }
+    case 'go_home': go(cur, 'home'); return say || 'Back to the home page.';
+    case 'new_tab': newTab('home'); return say || 'Opened a new tab.';
+    case 'list_games': return 'The games are: ' + GAMES.map(g => g.name).join(', ') + '.';
+    default: return say || null;
+  }
+}
+function aiParse(text) { const m = text.match(/\{[\s\S]*\}/); if (!m) return null; try { const o = JSON.parse(m[0]); if (o && o.action) return o; } catch (e) {} return null; }
 function aiRender() {
   const rows = aiMsgs.filter(m => m.role !== 'system');
   aiLog.innerHTML = (rows.length ? rows.map(m => `<div class="ai-msg ${m.role === 'user' ? 'user' : 'bot'}">${esc(m.content)}</div>`).join('')
@@ -570,13 +607,22 @@ async function aiSend(text) {
   aiMsgs.push({ role: 'user', content: text }); aiBusy = true; aiBox.value = ''; aiBox.style.height = ''; aiRender();
   try {
     const r = await fetch('https://text.pollinations.ai/openai', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'openai', messages: [SYS, ...aiMsgs] }) });
-    if (!r.ok) throw new Error('status ' + r.status);
+      body: JSON.stringify({ model: 'openai', messages: [aiSys(), ...aiMsgs] }) });
+    if (!r.ok) {
+      let secs = '';
+      try { const j = await r.json(); const mm = ((j.error && j.error.message) || '').match(/Retry after (\d+)/i); if (mm) secs = mm[1]; } catch (e) {}
+      throw new Error((r.status === 402 || r.status === 429) ? 'RATE:' + (secs || '45') : 'status ' + r.status);
+    }
     const j = await r.json();
     const out = ((j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '').trim();
-    aiMsgs.push({ role: 'assistant', content: out || 'Sorry, I had nothing to say there. Try asking again.' });
+    const act = aiParse(out);
+    const done = act ? aiAct(act) : null;
+    aiMsgs.push({ role: 'assistant', content: done || out || 'Sorry, I had nothing to say there. Try asking again.' });
   } catch (e) {
-    aiMsgs.push({ role: 'assistant', content: "I couldn't reach the assistant just now. Check your internet — some networks (like hotel Wi-Fi) block it." });
+    const m = String(e.message || '');
+    aiMsgs.push({ role: 'assistant', content: m.startsWith('RATE:')
+      ? 'The free assistant is busy (it allows about one message every 45 seconds). Try again in ' + m.slice(5) + ' seconds.'
+      : "I couldn't reach the assistant just now. Check your internet — some networks (like hotel Wi-Fi) block it." });
   }
   aiBusy = false; aiRender();
 }
