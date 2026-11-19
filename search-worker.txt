@@ -17,15 +17,27 @@ export default {
     if (!q) return send({ results: [] });
     if (!env.SEARCH_KEY) return send({ error: 'no key set' }, 500);
 
-    const r = await fetch('https://google.serper.dev/search', {
+    // t = which kind of Google search: everything, images, videos or news
+    const kind = { images: 'images', videos: 'videos', news: 'news' }[new URL(request.url).searchParams.get('t')] || 'search';
+    const r = await fetch('https://google.serper.dev/' + kind, {
       method: 'POST',
       headers: { 'X-API-KEY': env.SEARCH_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q, num: 20 }),
+      body: JSON.stringify({ q, num: kind === 'images' ? 30 : 20 }),
     });
     if (!r.ok) return send({ error: 'search service said ' + r.status }, 502);
     const j = await r.json();
     const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
-    const results = (j.organic || []).map((x) => ({ title: x.title || '', url: x.link || '', text: x.snippet || '', site: host(x.link), thumb: x.imageUrl || '' }));
-    return send({ results });
+    const list = j.organic || j.images || j.videos || j.news || [];
+    const results = list.map((x) => ({
+      title: x.title || '', url: x.link || '', text: x.snippet || x.source || '', site: host(x.link),
+      thumb: x.thumbnailUrl || x.imageUrl || '', extra: x.duration || x.date || '',
+    }));
+    // the short answer Google shows above the results, when it has one
+    let answer = null;
+    const ab = j.answerBox, kg = j.knowledgeGraph;
+    if (ab && (ab.answer || ab.snippet)) answer = { title: ab.title || '', text: ab.answer || ab.snippet, url: ab.link || '' };
+    else if (kg && kg.description) answer = { title: kg.title || '', text: kg.description, url: kg.descriptionLink || kg.website || '', thumb: kg.imageUrl || '' };
+    return send({ results, answer, kind });
+
   },
 };

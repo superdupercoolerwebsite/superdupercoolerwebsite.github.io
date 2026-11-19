@@ -81,6 +81,20 @@
   .rt b { font-size: 17px; font-weight: 700; color: var(--acc); }
   .rt em { font-style: normal; font-size: 12px; color: var(--dim); }
   .rt span { color: #c9cde0; overflow-wrap: anywhere; }
+  .kinds { display: flex; gap: 8px; margin: 0 0 16px; flex-wrap: wrap; }
+  .kinds button { padding: 7px 16px; border-radius: 999px; background: #1c1e28; border: 1px solid #2a2d3c; color: var(--dim); font-weight: 600; }
+  .kinds button:hover { color: var(--text); }
+  .kinds button.on { background: var(--acc); border-color: var(--acc); color: #0b0c12; }
+  .ans { display: flex; gap: 14px; padding: 16px; border-radius: 14px; background: linear-gradient(135deg, #232a4a, #1c1e28); border: 1px solid #3a4270; }
+  .ans img { width: 88px; height: 88px; border-radius: 10px; object-fit: cover; flex: none; }
+  .ans b { font-size: 18px; }
+  .ans p { margin: 4px 0 6px; font-size: 15px; color: #dfe3f5; overflow-wrap: anywhere; }
+  .ans a { color: var(--acc); font-size: 12px; }
+  .list.pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .pic { display: block; border-radius: 12px; overflow: hidden; background: #1c1e28; border: 1px solid #2a2d3c; text-decoration: none; }
+  .pic:hover { border-color: var(--acc); }
+  .pic img { display: block; width: 100%; height: 130px; object-fit: cover; }
+  .pic span { display: block; padding: 6px 8px; font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .more { margin-top: 22px; color: var(--dim); text-align: center; }
   .more a { color: var(--acc); }
   .empty { text-align: center; color: var(--dim); padding: 40px 0; grid-column: 1 / -1; }
@@ -96,7 +110,7 @@
     <button class="nav" id="homeBtn" title="Home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></button>
     <div id="addrWrap">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
-      <input id="addr" spellcheck="false" autocomplete="off" placeholder="Search Google">
+      <input id="addr" spellcheck="false" autocomplete="off" placeholder="Search the web">
       <div id="sug"></div>
     </div>
     <button class="nav" id="full" title="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -168,12 +182,7 @@ function render(t) {
     t.btn.innerHTML = `<span class="dot" style="background:${grad(g)}"></span><span class="name">${esc(g.name)}</span><span class="x" title="Close tab">&times;</span>`;
   } else if (w.startsWith('search:')) {
     const q = w.slice(7);
-    // Google itself, running inside the tab (its own embeddable mode). The results list from the search server
-    // (results()) is kept in the code but no longer used.
-    const f = document.createElement('iframe');
-    f.src = 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(q);
-    f.referrerPolicy = 'no-referrer';
-    t.view.appendChild(f);
+    t.view.appendChild(results(t, q));
     t.btn.innerHTML = `<span class="dot look"></span><span class="name">${esc(q)}</span><span class="x" title="Close tab">&times;</span>`;
   } else if (w.startsWith('wiki:')) {
     const title = w.slice(5), f = document.createElement('iframe');
@@ -240,8 +249,7 @@ let SEARCH_API = '';
 function results(t, q) {
   const el = document.createElement('div');
   el.className = 'home';
-  el.innerHTML = `<div class="homeIn res"><h2 class="rq">${esc(q)}</h2><div class="list"><div class="empty">Looking that up...</div></div>
-    <div class="more">Not what you wanted? Open this search in a new tab on <a target="_blank" rel="noopener" href="https://duckduckgo.com/?q=${encodeURIComponent(q)}">DuckDuckGo</a>, <a target="_blank" rel="noopener" href="https://www.bing.com/search?q=${encodeURIComponent(q)}">Bing</a> or <a target="_blank" rel="noopener" href="https://search.brave.com/search?q=${encodeURIComponent(q)}">Brave</a>.</div></div>`;
+  el.innerHTML = `<div class="homeIn res"><h2 class="rq">${esc(q)}</h2><div class="kinds"><button data-k="" class="on">All</button><button data-k="images">Images</button><button data-k="videos">Videos</button><button data-k="news">News</button></div><div class="list"><div class="empty">Looking that up...</div></div></div>`;
   const list = el.querySelector('.list');
   const row = (pic, title, text, tag, open) => {
     const b = document.createElement('button');
@@ -269,12 +277,26 @@ function results(t, q) {
       if (!mine.length && !pages.length) none(`Nothing found for "${esc(q)}". Try other words, or one of the search sites below.`);
     }).catch(() => { put([]); none('Could not reach the look-up service. Check your connection, or use one of the search sites below.'); });
   };
-  const web = () => fetch(SEARCH_API + (SEARCH_API.includes('?') ? '&' : '?') + 'q=' + encodeURIComponent(q)).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => {
+  let kind = '';
+  const web = () => fetch(SEARCH_API + (SEARCH_API.includes('?') ? '&' : '?') + 'q=' + encodeURIComponent(q) + (kind ? '&t=' + kind : '')).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => {
     if (!j.results) throw 0;
-    put(j.results.filter(x => /^https?:\/\//.test(x.url)).map(link));
-    if (!mine.length && !j.results.length) none(`Nothing found for "${esc(q)}".`);
+    const ok = j.results.filter(x => /^https?:\/\//.test(x.url));
+    list.classList.toggle('pics', kind === 'images');
+    if (kind === 'images') {
+      put(ok.filter(x => x.thumb).map(x => { const a = document.createElement('a'); a.className = 'pic'; a.href = x.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.title = x.title; a.innerHTML = `<img src="${esc(x.thumb)}" alt="${esc(x.title)}" loading="lazy" referrerpolicy="no-referrer"><span>${esc(x.site)}</span>`; return a; }));
+    } else {
+      put(ok.map(x => link({ ...x, site: (x.site || '') + (x.extra ? '  ·  ' + x.extra : '') })));
+      const an = j.answer;
+      if (an && an.text) list.insertAdjacentHTML('afterbegin', `<div class="ans">${an.thumb ? `<img src="${esc(an.thumb)}" alt="" referrerpolicy="no-referrer">` : ''}<div>${an.title ? `<b>${esc(an.title)}</b>` : ''}<p>${esc(an.text)}</p>${/^https?:\/\//.test(an.url || '') ? `<a href="${esc(an.url)}" target="_blank" rel="noopener noreferrer">${esc(an.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0])}</a>` : ''}</div></div>`);
+    }
+    if (!ok.length) none(`Nothing found for "${esc(q)}".`);
   });
-  if (SEARCH_API) web().catch(wiki); else wiki();
+  const run = () => { list.innerHTML = '<div class="empty">Searching...</div>'; list.classList.remove('pics'); if (SEARCH_API) web().catch(kind ? () => { put([]); none('Could not get those results right now.'); } : wiki); else wiki(); };
+  const kinds = el.querySelector('.kinds');
+  kinds.hidden = !SEARCH_API;
+  kinds.onclick = e => { const b = e.target.closest('button'); if (!b || b.dataset.k === kind) return; kind = b.dataset.k; for (const o of kinds.children) o.classList.toggle('on', o === b); run(); };
+  run();
+
   return el;
 }
 
@@ -282,7 +304,7 @@ function results(t, q) {
 function suggest() {
   const q = addr.value.trim();
   // the top bar only looks things up (games are searched with the box on the home page)
-  shown = q && !/^arcade:/i.test(q) ? [{ where: 'search:' + q, html: `<span class="dot look"></span><b>${esc(q)}</b><span>Search Google</span>` }] : [];
+  shown = q && !/^arcade:/i.test(q) ? [{ where: 'search:' + q, html: `<span class="dot look"></span><b>${esc(q)}</b><span>Search the web</span>` }] : [];
   sel = 0;
   sug.innerHTML = shown.map((o, i) => `<button class="s${i === 0 ? ' on' : ''}" data-i="${i}">${o.html}</button>`).join('');
   sug.classList.toggle('show', shown.length > 0);
