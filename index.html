@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>superdupercoolerwebsite</title>
 <link rel="icon" type="image/png" href="icon.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&display=swap">
 <style>
   :root {
     --acc: #8b5cf6; --acc2: #ff5fa2; --glow: #8b5cf655; --ok: #4ade80;
@@ -57,23 +59,23 @@
   .note { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 9px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); color: var(--dim); font-size: 13px; box-shadow: 0 10px 30px #000a; display: flex; gap: 10px; align-items: center; }
   .note a { color: var(--acc2); font-weight: 700; text-decoration: none; white-space: nowrap; }
 
-  /* ---- new tab page ---- */
-  .start { height: 100%; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; align-items: center; padding: 7vh 16px 40px; position: relative; }
-  .start::-webkit-scrollbar { display: none; }
-  .start::before { content: ""; position: absolute; top: -10%; left: 50%; width: min(900px, 120%); height: 460px; transform: translateX(-50%); background: radial-gradient(closest-side, #8b5cf633, transparent); pointer-events: none; }
-  .start > * { position: relative; }
-  .logo { width: min(500px, 84vw); height: auto; image-rendering: pixelated; filter: drop-shadow(0 0 28px #8b5cf644); }
-  .tag { margin: 4px 0 22px; color: var(--dim); }
-  .big { width: min(620px, 100%); display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 18px; border-radius: 27px; background: var(--panel); border: 1px solid var(--line); transition: border-color .15s, box-shadow .15s; }
-  .big:focus-within { border-color: var(--acc); box-shadow: 0 0 0 4px var(--glow), 0 12px 40px #0008; }
-  .big svg { color: var(--dim); }
-  .big input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; font-size: 16px; }
-  .tiles { margin-top: 30px; width: min(620px, 100%); display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 12px; }
-  .tile { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 6px 12px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); color: var(--text); font-size: 12px; transition: transform .12s, border-color .12s, box-shadow .12s; }
-  .tile:hover { transform: translateY(-3px); border-color: var(--acc); box-shadow: 0 0 22px var(--glow); }
-  .tile img { width: 34px; height: 34px; border-radius: 9px; background: #fff; padding: 4px; }
-  .status { margin-top: 26px; display: flex; align-items: center; gap: 8px; color: var(--dim); font-size: 13px; text-align: center; }
-  .status b { color: var(--ok); } .status b.off { color: #fbbf24; }
+  /* ---- new tab page: pixel space ---- */
+  .start { height: 100%; overflow: hidden; display: flex; flex-direction: column; align-items: center; padding: 9vh 16px 40px; position: relative;
+    background: linear-gradient(#140a3a 0%, #241769 30%, #46379f 54%, #7d6fd0 74%, #b9b2ec 88%, #dcd6f6 100%); }
+  .sky { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; image-rendering: pixelated; }
+  .star { animation: tw 3s ease-in-out infinite; }
+  @keyframes tw { 0%, 100% { opacity: .18; } 50% { opacity: 1; } }
+  .start > :not(.sky):not(.buddy) { position: relative; z-index: 1; }
+  .logo { width: min(560px, 90vw); height: auto; image-rendering: pixelated; filter: drop-shadow(0 7px 0 #0000001f) drop-shadow(0 0 34px #ffffff26); }
+  .big { width: min(560px, 100%); margin-top: 10px; display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 8px 0 20px; border-radius: 30px; background: #fbfaff; border: 3px solid #2a2350; box-shadow: 0 7px 0 #1d1746, 0 16px 34px #160f3a66; }
+  .big > svg { color: #6b63a6; width: 22px; height: 22px; }
+  .big input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; font-size: 16px; color: #1c1838; }
+  .big input::placeholder { color: #8b84b4; }
+  .go { width: 42px; height: 42px; flex: none; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, var(--acc), var(--acc2)); box-shadow: 0 3px 0 #2a2350; transition: transform .1s; }
+  .go:hover { transform: translateY(-1px); }
+  .go svg { color: #fff; width: 20px; height: 20px; }
+  .buddy { position: absolute; left: 16px; bottom: 14px; z-index: 1; display: flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 13px; background: #ffffffd9; border: 2px solid #2a235026; color: #2a2350; font-family: "Pixelify Sans", system-ui, sans-serif; font-size: 15px; box-shadow: 0 4px 0 #1d174622; }
+  .buddy b { font-weight: 700; } .buddy b.off { color: #b4530a; }
 </style>
 </head>
 <body>
@@ -214,19 +216,45 @@ function chrome() {
 /* ---------- new tab page ---------- */
 function startPage(t) {
   const el = document.createElement('div'); el.className = 'start';
-  el.innerHTML = `<img class="logo" src="logo.png" alt="superdupercoolerwebsite">
-    <div class="tag">A browser inside your browser.</div>
-    <form class="big"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.500-3.500"/></svg><input placeholder="Search or type a web address" spellcheck="false" autocapitalize="off" enterkeyhint="go"></form>
-    <div class="tiles">${SHORTCUTS.map(([n, u]) => `<button class="tile" type="button" data-u="${esc(u)}"><img src="${esc(favOf(u))}" alt="" referrerpolicy="no-referrer">${esc(n)}</button>`).join('')}</div>
-    <div class="status"></div>`;
+  el.innerHTML = `<svg class="sky" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
+    <img class="logo" src="logo.png" alt="superdupercoolerwebsite">
+    <form class="big"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Search the web…" spellcheck="false" autocapitalize="off" enterkeyhint="go"><button class="go" type="submit" aria-label="Search"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button></form>
+    <div class="buddy">😎 <b>Stay cool</b></div>`;
+  buildSky(el.querySelector('.sky'));
   el.querySelector('form').onsubmit = e => { e.preventDefault(); go(t, toUrl(el.querySelector('input').value)); };
-  el.querySelector('.tiles').onclick = e => { const b = e.target.closest('.tile'); if (b) go(t, b.dataset.u); };
   proxyReady.then(() => {
-    el.querySelector('.status').innerHTML = PROXY
-      ? '<b>&#9679; Protected</b> Pages open through the proxy. Downloads are blocked.'
-      : '<b class="off">&#9679; Proxy offline</b> Pages load directly, and many sites will stay blank.';
+    const b = el.querySelector('.buddy');
+    if (!b) return;
+    b.innerHTML = PROXY ? '😎 <b>Protected</b>' : '😎 <b class="off">Direct</b>';
+    b.title = PROXY ? 'Pages open through the proxy. Downloads are blocked.' : 'The proxy is offline, so pages load directly and some stay blank.';
   });
   return el;
+}
+
+// draws the pixel night sky: twinkling stars + a blocky cloud bank along the bottom
+function buildSky(svg) {
+  const R = (a, b) => a + Math.random() * (b - a);
+  let s = '';
+  for (let i = 0; i < 80; i++) {
+    const sz = Math.random() < 0.14 ? 5 : (Math.random() < 0.5 ? 2 : 3);
+    s += `<rect class="star" x="${R(0, 1200) | 0}" y="${R(0, 440) | 0}" width="${sz}" height="${sz}" fill="#fff" style="animation-duration:${R(2, 5).toFixed(2)}s;animation-delay:${R(0, 4).toFixed(2)}s"/>`;
+  }
+  for (let i = 0; i < 6; i++) {                       // gold 4-point sparkles
+    const x = R(60, 1140) | 0, y = R(20, 380) | 0;
+    s += `<g class="star" fill="#ffd23f" style="animation-duration:${R(2, 4).toFixed(2)}s;animation-delay:${R(0, 3).toFixed(2)}s"><rect x="${x - 2}" y="${y - 7}" width="4" height="14"/><rect x="${x - 7}" y="${y - 2}" width="14" height="4"/></g>`;
+  }
+  s += cloudBand(600, 22, '#c3b7ef', R(0, 9));         // back bank (lavender)
+  s += cloudBand(636, 22, '#ffffff', R(0, 9));         // front bank (white)
+  svg.innerHTML = s;
+}
+// a stepped, puffy cloud skyline from x=0..1200 filled down to the bottom
+function cloudBand(baseY, step, color, seed) {
+  let d = `M0 700 L0 ${baseY}`;
+  for (let x = 0; x <= 1200; x += step) {
+    const y = baseY - step * Math.round(1.6 + 1.5 * (Math.sin(x / 70 + seed) + 1) + (Math.random() < 0.3 ? 1 : 0));
+    d += ` L${x} ${y} L${x + step} ${y}`;
+  }
+  return `<path d="${d} L1200 700 Z" fill="${color}"/>`;
 }
 
 /* ---------- toolbar ---------- */
