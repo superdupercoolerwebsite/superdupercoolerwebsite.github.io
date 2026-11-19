@@ -166,6 +166,8 @@
     .gpic { width: 120px; }
     .gpic img { height: 72px; }
   }
+  .note { padding: 10px 14px; border-radius: 12px; background: #2a2333; border: 1px solid #5a3f6e; color: #e6d6f5; }
+  .note button { margin-left: 8px; padding: 4px 12px; border-radius: 12px; background: var(--acc); color: #0b0c12; font-weight: 700; }
   .empty { text-align: center; color: var(--dim); padding: 40px 0; grid-column: 1 / -1; }
 </style>
 </head>
@@ -314,7 +316,8 @@ function home(t) {
 // ---------- our own search page ----------
 // The familiar search-engine layout (logo + box, tabs, results, side panel), in this site's colours and with its logo.
 // The results come from Google through the search server (search.json). Without the server it falls back to Wikipedia.
-let SEARCH_API = '';
+let SEARCH_API = '', why = '';
+const ready = fetch('search.json', { cache: 'no-cache' }).then(r => r.json()).then(c => { SEARCH_API = c.api || ''; }).catch(() => {});
 function results(t, q) {
   const el = document.createElement('div');
   el.className = 'home srp';
@@ -333,11 +336,13 @@ function results(t, q) {
 
   const wiki = () => {
     tabsRow.hidden = true;
+    const note = why ? `<div class="note">Web search did not answer (${esc(why)}), so these are from Wikipedia. <button>Try again</button></div>` : '';
     const url = 'https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrlimit=12&prop=pageimages%7Cextracts&exintro=1&explaintext=1&exsentences=2&exlimit=12&piprop=thumbnail&pithumbsize=160&format=json&origin=*&gsrsearch=' + encodeURIComponent(q);
     return fetch(url).then(r => r.json()).then(j => {
       const pages = Object.values((j.query && j.query.pages) || {}).sort((a, b) => a.index - b.index);
       if (!pages.length) return none(`Nothing found for "${esc(q)}".`);
-      list.innerHTML = '';
+      list.innerHTML = note;
+      const again = list.querySelector('.note button'); if (again) again.onclick = () => { tabsRow.hidden = false; run(); };
       for (const pg of pages) {
         const d = document.createElement('div');
         d.className = 'g';
@@ -348,8 +353,10 @@ function results(t, q) {
     }).catch(() => none('Could not reach the search service. Check your connection.'));
   };
 
-  const web = () => fetch(SEARCH_API + (SEARCH_API.includes('?') ? '&' : '?') + 'q=' + encodeURIComponent(q) + (kind ? '&t=' + kind : '') + (page > 1 ? '&p=' + page : '')).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => {
-    if (!j.results) throw 0;
+  const ask = () => fetch(SEARCH_API + (SEARCH_API.includes('?') ? '&' : '?') + 'q=' + encodeURIComponent(q) + (kind ? '&t=' + kind : '') + (page > 1 ? '&p=' + page : ''))
+    .then(r => r.ok ? r.json() : r.json().catch(() => ({})).then(j => { throw new Error('server said ' + r.status + (j.error ? ': ' + j.error : '')); }), () => { throw new Error('this device could not reach the search server'); });
+  const web = () => ask().catch(e => /could not reach/.test(e.message) ? new Promise(r => setTimeout(r, 700)).then(ask) : Promise.reject(e)).then(j => {
+    if (!j.results) throw new Error('empty answer');
     const ok = j.results.filter(x => http(x.url));
     list.className = 'list' + (kind === 'images' ? ' pics' : '');
     side.innerHTML = ''; pager.innerHTML = '';
@@ -374,7 +381,13 @@ function results(t, q) {
     pager.innerHTML = `${page > 1 ? '<button data-d="-1">‹ Previous</button>' : ''}<span>Page ${page}</span><button data-d="1">Next ›</button>`;
   });
 
-  const run = () => { list.className = 'list'; list.innerHTML = '<div class="empty">Searching...</div>'; side.innerHTML = ''; pager.innerHTML = ''; el.scrollTop = 0; if (SEARCH_API) web().catch(kind || page > 1 ? () => none('Could not get those results right now.') : wiki); else wiki(); };
+  const run = () => {
+    list.className = 'list'; list.innerHTML = '<div class="empty">Searching...</div>'; side.innerHTML = ''; pager.innerHTML = ''; el.scrollTop = 0;
+    ready.then(() => {
+      if (!SEARCH_API) { why = ''; return wiki(); }
+      return web().catch(e => { why = (e && e.message) || 'unknown problem'; console.warn('web search failed:', why); return kind || page > 1 ? none('Could not get those results right now (' + esc(why) + ').') : wiki(); });
+    });
+  };
   tabsRow.onclick = e => { const b = e.target.closest('button'); if (!b || b.dataset.k === kind) return; kind = b.dataset.k; page = 1; for (const o of tabsRow.children) o.classList.toggle('on', o === b); run(); };
   pager.onclick = e => { const b = e.target.closest('button'); if (!b) return; page = Math.max(1, page + +b.dataset.d); run(); };
   run();
@@ -422,7 +435,6 @@ addEventListener('keydown', e => {
   if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 't') { e.preventDefault(); newTab(); addr.focus(); }
 });
 
-fetch('search.json', { cache: 'no-cache' }).then(r => r.json()).then(c => { SEARCH_API = c.api || ''; }).catch(() => {});
 fetch('games.json', { cache: 'no-cache' }).then(r => r.json()).then(list => {
   GAMES = list;
   const want = decodeURIComponent(location.hash.slice(1));
