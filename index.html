@@ -187,6 +187,7 @@
   .wbar .fav { width: 22px; height: 22px; padding: 3px; }
   .wbar span { color: var(--text); font-weight: 600; white-space: nowrap; }
   .wbar em { flex: 1; min-width: 0; font-style: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wbar .shield { color: #4ade80; font-weight: 700; margin-right: 6px; }
   .wbar a { flex: none; padding: 5px 12px; border-radius: 14px; background: var(--acc); color: #0b0c12; font-weight: 700; text-decoration: none; }
 
   /* ---- AI assistant panel ---- */
@@ -261,6 +262,28 @@ function setTheme(k) {
 }
 try { const k = localStorage.getItem('sdcw.accent'); if (k && THEMES[k]) setTheme(k); } catch (e) {}
 
+// ---------- protected browser ----------
+// When the site runs on this PC and its proxy (sdcw-proxy) is started, other websites open through it:
+// almost any site loads inside the tab, and it is shut in a box that cannot download files.
+let PROXY = null;
+const proxyReady = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+  ? fetch(`http://${location.hostname}:9200/health`).then(r => r.json()).then(j => { if (j.ok) PROXY = `http://${location.hostname}:9200`; }).catch(() => {})
+  : Promise.resolve();
+const sameUrl = (a, b) => { try { return new URL(a).href === new URL(b).href; } catch (e) { return a === b; } };
+addEventListener('message', e => {
+  if (!PROXY || e.origin !== PROXY || !e.data || e.data.sdcw !== 'nav' || !/^https?:\/\//.test(e.data.url)) return;
+  const t = tabs.find(o => { const f = o.view.querySelector('iframe[data-proxied]'); return f && f.contentWindow === e.source; });
+  if (!t) return;
+  const f = t.view.querySelector('iframe[data-proxied]'), url = e.data.url, host = hostOf(url), w = 'web:' + url;
+  if (f.dataset.first) { delete f.dataset.first; t.hist[t.at] = w; }                 // the page it settled on (after redirects)
+  else if (!sameUrl(here(t).slice(4), url)) { t.hist.length = t.at + 1; t.hist.push(w); t.at = t.hist.length - 1; }
+  const fav = 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(host);
+  const bar = t.view.querySelector('.wbar');
+  if (bar) { bar.querySelector('span').textContent = host; bar.querySelector('.fav').src = fav; bar.querySelector('a').href = url; }
+  t.btn.innerHTML = `<img class="dot" src="${fav}" alt="" referrerpolicy="no-referrer"><span class="name">${esc(e.data.title || host)}</span><span class="x" title="Close tab">&times;</span>`;
+  if (t === cur) chrome();
+});
+
 // Which games match what was typed, best first. Every word typed has to be found somewhere in the game.
 function search(q) {
   const words = q.toLowerCase().replace(/^arcade:\/\//, '').split(/[\s\-_/]+/).filter(Boolean);
@@ -320,9 +343,15 @@ function render(t) {
     // web search is just Google itself, running in the tab (its own embeddable mode). No server, no proxy.
     const q = w.slice(7), f = document.createElement('iframe');
     f.className = 'goog';
-    f.src = 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(q);
     f.referrerPolicy = 'no-referrer';
     t.view.appendChild(f);
+    proxyReady.then(() => {
+      if (here(t) !== w) return;
+      // with the protected browser running, search inside it so the results open protected too
+      // (DuckDuckGo: Google answers a proxy with a "prove you are human" test)
+      if (PROXY) { t.hist[t.at] = 'web:https://duckduckgo.com/?q=' + encodeURIComponent(q); render(t); if (t === cur) chrome(); }
+      else f.src = 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(q);
+    });
     t.btn.innerHTML = `<span class="dot look"></span><span class="name">${esc(q)}</span><span class="x" title="Close tab">&times;</span>`;
   } else if (w.startsWith('web:')) {
     // Another website, shown inside the tab. Many sites refuse to be shown inside another page (the frame stays
@@ -332,12 +361,22 @@ function render(t) {
     box.className = 'web';
     box.innerHTML = `<div class="wbar"><img class="fav" src="https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(host)}" alt="" referrerpolicy="no-referrer"><span>${esc(host)}</span><em>Blank page? This site does not allow being shown here.</em><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Open in a real tab</a></div>`;
     const f = document.createElement('iframe');
-    // the site can run and use its own logins, but cannot take over this window
-    f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation';
     f.allow = 'fullscreen; autoplay';
     f.referrerPolicy = 'no-referrer';
-    f.src = url;
     box.appendChild(f);
+    proxyReady.then(() => {
+      if (PROXY) {
+        // through the proxy: scripts and forms work, but no downloads, no camera/mic/location, no taking over this window
+        f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
+        f.dataset.proxied = '1'; f.dataset.first = '1';
+        box.querySelector('em').innerHTML = '<b class="shield">&#128737; Protected</b> Downloads are blocked. Avoid typing passwords for important accounts here.';
+        f.src = PROXY + '/go.html#' + encodeURIComponent(url);
+      } else {
+        // the site can run and use its own logins, but cannot take over this window
+        f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation';
+        f.src = url;
+      }
+    });
     t.view.appendChild(box);
     t.btn.innerHTML = `<img class="dot" src="https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(host)}" alt="" referrerpolicy="no-referrer"><span class="name">${esc(host)}</span><span class="x" title="Close tab">&times;</span>`;
   } else if (w.startsWith('wiki:')) {
