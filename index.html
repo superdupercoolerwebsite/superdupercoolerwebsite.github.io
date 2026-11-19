@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>superdupercoolerwebsite</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<style>
+  :root { --bg: #14151a; --bar: #1d1f27; --tab: #272a35; --line: #32364a; --text: #e8eaf2; --dim: #8f95ab; --acc: #7c9cff; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 "Segoe UI", system-ui, sans-serif; overflow: hidden; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  #app { display: flex; flex-direction: column; height: 100%; }
+
+  /* tab strip */
+  #tabs { display: flex; align-items: flex-end; gap: 2px; padding: 8px 8px 0; background: #0e0f13; min-height: 42px; overflow-x: auto; scrollbar-width: none; }
+  .tab { display: flex; align-items: center; gap: 8px; min-width: 120px; max-width: 220px; height: 34px; padding: 0 8px 0 12px; border-radius: 10px 10px 0 0; color: var(--dim); white-space: nowrap; flex: 0 1 220px; }
+  .tab:hover { background: #1a1c24; }
+  .tab.on { background: var(--bar); color: var(--text); }
+  .tab .dot { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+  .tab .name { flex: 1; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+  .tab .x { width: 20px; height: 20px; border-radius: 50%; line-height: 18px; text-align: center; color: var(--dim); flex: none; }
+  .tab .x:hover { background: #3a3e52; color: #fff; }
+  #newtab { width: 30px; height: 30px; margin: 0 0 2px 4px; border-radius: 50%; font-size: 20px; line-height: 28px; color: var(--dim); flex: none; }
+  #newtab:hover { background: #262935; color: #fff; }
+
+  /* toolbar */
+  #bar { display: flex; align-items: center; gap: 4px; padding: 7px 10px; background: var(--bar); border-bottom: 1px solid #000; position: relative; }
+  .nav { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+  .nav:hover:not(:disabled) { background: #2e3140; }
+  .nav:disabled { opacity: .3; cursor: default; }
+  .nav svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  #addrWrap { flex: 1; position: relative; margin: 0 6px; }
+  #addr { width: 100%; height: 34px; padding: 0 16px 0 38px; border-radius: 17px; border: 2px solid transparent; outline: 0; background: #12131a; color: var(--text); font: inherit; }
+  #addr:focus { border-color: var(--acc); background: #0d0e13; }
+  #addrWrap > svg { position: absolute; left: 13px; top: 9px; width: 16px; height: 16px; fill: none; stroke: var(--dim); stroke-width: 2; stroke-linecap: round; pointer-events: none; }
+  #sug { position: absolute; left: 0; right: 0; top: 40px; background: #1b1d26; border: 1px solid var(--line); border-radius: 12px; padding: 6px; display: none; z-index: 20; box-shadow: 0 14px 40px #000a; }
+  #sug.show { display: block; }
+  .s { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 10px; border-radius: 8px; text-align: left; }
+  .s.on, .s:hover { background: #2a2d3c; }
+  .s .dot { width: 26px; height: 26px; border-radius: 7px; flex: none; }
+  .s b { font-weight: 600; }
+  .s span { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .s.none { color: var(--dim); cursor: default; }
+
+  /* pages */
+  #views { flex: 1; position: relative; background: #000; }
+  .view { position: absolute; inset: 0; display: none; }
+  .view.on { display: block; }
+  iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
+  .home { overflow-y: auto; background: radial-gradient(1200px 600px at 50% -10%, #262b45 0%, var(--bg) 60%); }
+  .homeIn { max-width: 1120px; margin: 0 auto; padding: 40px 24px 60px; }
+  .mark { display: block; width: 96px; height: 96px; margin: 0 auto 14px; filter: drop-shadow(0 10px 24px #0008); }
+  .logo { text-align: center; font-size: clamp(22px, 7.2vw, 44px); font-weight: 800; letter-spacing: -1.5px; margin: 0; }
+  .logo i { font-style: normal; background: linear-gradient(90deg, #5b8cff, #8b5cf6, #ff5fa2); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { text-align: center; color: var(--dim); margin: 6px 0 26px; }
+  .big { display: block; width: min(620px, 100%); height: 52px; margin: 0 auto 38px; padding: 0 24px; border-radius: 26px; border: 2px solid var(--line); outline: 0; background: #12131a; color: var(--text); font: inherit; font-size: 17px; }
+  .big:focus { border-color: var(--acc); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+  .card { display: block; text-align: left; border-radius: 16px; overflow: hidden; background: #1c1e28; border: 1px solid #2a2d3c; transition: transform .12s, border-color .12s, box-shadow .12s; }
+  .card:hover, .card:focus-visible { transform: translateY(-4px); border-color: var(--acc); box-shadow: 0 12px 30px #0008; outline: 0; }
+  .art { height: 132px; display: flex; align-items: flex-end; padding: 12px 14px; position: relative; overflow: hidden; }
+  .art::before { content: attr(data-l); position: absolute; right: -8px; top: -34px; font-size: 150px; font-weight: 900; color: #fff2; line-height: 1; }
+  .art span { font-size: 22px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px #0008; position: relative; }
+  .card p { margin: 0; padding: 12px 14px 14px; color: var(--dim); min-height: 66px; }
+  .empty { text-align: center; color: var(--dim); padding: 40px 0; grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="tabs"><button id="newtab" title="New tab (Ctrl+Alt+T)">+</button></div>
+  <div id="bar">
+    <button class="nav" id="back" title="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="nav" id="fwd" title="Forward"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button class="nav" id="reload" title="Reload"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5"/></svg></button>
+    <button class="nav" id="homeBtn" title="Home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></button>
+    <div id="addrWrap">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
+      <input id="addr" spellcheck="false" autocomplete="off" placeholder="Search games">
+      <div id="sug"></div>
+    </div>
+    <button class="nav" id="full" title="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </div>
+  <div id="views"></div>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const tabsEl = $('#tabs'), viewsEl = $('#views'), addr = $('#addr'), sug = $('#sug');
+let GAMES = [], tabs = [], cur = null, nextId = 1, sel = 0, shown = [];
+
+const grad = g => `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})`;
+const byId = id => GAMES.find(g => g.id === id);
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// Which games match what was typed, best first. Every word typed has to be found somewhere in the game.
+function search(q) {
+  const words = q.toLowerCase().replace(/^arcade:\/\//, '').split(/[\s\-_/]+/).filter(Boolean);
+  if (!words.length) return GAMES.slice();
+  const out = [];
+  for (const g of GAMES) {
+    const name = g.name.toLowerCase(), all = name + ' ' + g.id + ' ' + g.tags + ' ' + g.about.toLowerCase();
+    let score = 0, ok = true;
+    for (const w of words) {
+      if (name.startsWith(w)) score += 5; else if (name.includes(w)) score += 3; else if (all.includes(w)) score += 1; else { ok = false; break; }
+    }
+    if (ok) out.push([score, g]);
+  }
+  return out.sort((a, b) => b[0] - a[0]).map(e => e[1]);
+}
+
+// ---------- tabs ----------
+function newTab(where = 'home') {
+  const t = { id: nextId++, hist: [], at: -1, view: document.createElement('div'), btn: document.createElement('button') };
+  t.view.className = 'view'; viewsEl.appendChild(t.view);
+  t.btn.className = 'tab';
+  t.btn.onclick = e => { if (e.target.classList.contains('x')) closeTab(t); else show(t); };
+  t.btn.onauxclick = e => { if (e.button === 1) closeTab(t); };
+  tabsEl.insertBefore(t.btn, $('#newtab'));
+  tabs.push(t); go(t, where); show(t);
+  return t;
+}
+function closeTab(t) {
+  const i = tabs.indexOf(t);
+  t.view.remove(); t.btn.remove(); tabs.splice(i, 1);
+  if (!tabs.length) { newTab(); return; }
+  if (cur === t) show(tabs[Math.min(i, tabs.length - 1)]);
+}
+function show(t) {
+  cur = t;
+  for (const o of tabs) { o.view.classList.toggle('on', o === t); o.btn.classList.toggle('on', o === t); }
+  chrome();
+  focusPage();
+}
+function go(t, where, keep) {
+  if (!keep) { t.hist.length = t.at + 1; t.hist.push(where); t.at = t.hist.length - 1; }
+  render(t); hideSug();
+  if (t === cur) { chrome(); focusPage(); }
+}
+function here(t) { return t.hist[t.at]; }
+function render(t) {
+  const w = here(t), g = byId(w);
+  t.view.innerHTML = '';
+  if (g) {
+    const f = document.createElement('iframe');
+    f.allow = 'fullscreen; gamepad; autoplay';
+    f.src = `g/${g.id}/${g.page}`;
+    t.view.appendChild(f);
+    t.btn.innerHTML = `<span class="dot" style="background:${grad(g)}"></span><span class="name">${esc(g.name)}</span><span class="x" title="Close tab">&times;</span>`;
+  } else {
+    t.view.appendChild(home(t));
+    t.btn.innerHTML = `<img class="dot" src="logo.svg" alt=""><span class="name">Home</span><span class="x" title="Close tab">&times;</span>`;
+  }
+}
+function chrome() {
+  if (!cur) return;
+  const w = here(cur);
+  if (document.activeElement !== addr) addr.value = w === 'home' ? '' : 'arcade://' + w;
+  $('#back').disabled = cur.at <= 0;
+  $('#fwd').disabled = cur.at >= cur.hist.length - 1;
+  document.title = (byId(w) ? byId(w).name + ' - ' : '') + 'superdupercoolerwebsite';
+}
+// keys go to the game as soon as it is on screen
+function focusPage() {
+  if (!cur) return;
+  const f = cur.view.querySelector('iframe');
+  if (f) { f.focus(); f.addEventListener('load', () => { if (cur && cur.view.contains(f) && document.activeElement !== addr) f.focus(); }, { once: true }); }
+}
+
+// ---------- the home page ----------
+function home(t) {
+  const el = document.createElement('div');
+  el.className = 'home';
+  el.innerHTML = `<div class="homeIn"><img class="mark" src="logo.svg" alt=""><h1 class="logo">superdupercooler<i>website</i></h1><div class="sub">${GAMES.length} games</div>
+    <input class="big" placeholder="Search games" spellcheck="false" autocomplete="off"><div class="grid"></div></div>`;
+  const box = el.querySelector('.big'), grid = el.querySelector('.grid');
+  const fill = () => {
+    const list = search(box.value);
+    grid.innerHTML = list.length ? '' : `<div class="empty">No game matches "${esc(box.value)}"</div>`;
+    for (const g of list) {
+      const c = document.createElement('button');
+      c.className = 'card';
+      c.innerHTML = `<div class="art" data-l="${esc(g.name[0])}" style="background:${grad(g)}"><span>${esc(g.name)}</span></div><p>${esc(g.about)}</p>`;
+      c.onclick = e => { if (e.ctrlKey || e.metaKey) newTab(g.id); else go(t, g.id); };
+      c.onauxclick = e => { if (e.button === 1) { const was = cur; newTab(g.id); show(was); } };
+      grid.appendChild(c);
+    }
+  };
+  box.oninput = fill;
+  box.onkeydown = e => { if (e.key === 'Enter') { const l = search(box.value); if (l.length) go(t, l[0].id); } };
+  fill();
+  return el;
+}
+
+// ---------- the address / search bar ----------
+function suggest() {
+  const q = addr.value.trim();
+  shown = search(q).slice(0, 7); sel = 0;
+  sug.innerHTML = shown.length
+    ? shown.map((g, i) => `<button class="s${i === 0 ? ' on' : ''}" data-i="${i}"><span class="dot" style="background:${grad(g)}"></span><b>${esc(g.name)}</b><span>${esc(g.about)}</span></button>`).join('')
+    : `<div class="s none">No game matches "${esc(q)}"</div>`;
+  sug.classList.add('show');
+}
+function mark() { sug.querySelectorAll('.s').forEach((b, i) => b.classList.toggle('on', i === sel)); }
+function hideSug() { sug.classList.remove('show'); }
+addr.onfocus = () => { addr.select(); suggest(); };
+addr.oninput = suggest;
+addr.onblur = () => setTimeout(() => { hideSug(); chrome(); }, 120);
+addr.onkeydown = e => {
+  if (e.key === 'ArrowDown') { sel = Math.min(shown.length - 1, sel + 1); mark(); e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { sel = Math.max(0, sel - 1); mark(); e.preventDefault(); }
+  else if (e.key === 'Escape') { addr.blur(); hideSug(); focusPage(); }
+  else if (e.key === 'Enter') {
+    const q = addr.value.trim().toLowerCase();
+    const where = q === '' || q === 'home' || q === 'arcade://home' ? 'home' : shown[sel] ? shown[sel].id : null;
+    if (where) { addr.blur(); hideSug(); if (here(cur) !== where) go(cur, where); else focusPage(); }
+  }
+};
+sug.onmousedown = e => {
+  const b = e.target.closest('.s[data-i]'); if (!b) return;
+  e.preventDefault(); addr.blur(); go(cur, shown[+b.dataset.i].id);
+};
+
+// ---------- buttons ----------
+$('#newtab').onclick = () => { newTab(); addr.focus(); };
+$('#back').onclick = () => { if (cur.at > 0) { cur.at--; go(cur, here(cur), true); } };
+$('#fwd').onclick = () => { if (cur.at < cur.hist.length - 1) { cur.at++; go(cur, here(cur), true); } };
+$('#reload').onclick = () => go(cur, here(cur), true);
+$('#homeBtn').onclick = () => { if (here(cur) !== 'home') go(cur, 'home'); };
+$('#full').onclick = () => { const f = cur.view.querySelector('iframe') || document.documentElement; if (document.fullscreenElement) document.exitFullscreen(); else f.requestFullscreen().then(() => f.focus && f.focus()); };
+addEventListener('keydown', e => {
+  if ((e.ctrlKey && e.key.toLowerCase() === 'l') || (e.key === '/' && !/INPUT/.test(document.activeElement.tagName))) { e.preventDefault(); addr.focus(); }
+  if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 't') { e.preventDefault(); newTab(); addr.focus(); }
+});
+
+fetch('games.json').then(r => r.json()).then(list => {
+  GAMES = list;
+  const want = decodeURIComponent(location.hash.slice(1));
+  newTab(byId(want) ? want : 'home');
+});
+</script>
+</body>
+</html>

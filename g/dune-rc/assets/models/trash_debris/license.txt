@@ -1,0 +1,8 @@
+Model Information:
+* title:	Trash and Debris
+* source:	https://sketchfab.com/3d-models/trash-and-debris-831a2b9fb9cd413abb5f178e8d3eb3f6
+* author:	mcsteegs (https://sketchfab.com/mcsteegs)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works

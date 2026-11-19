@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low Poly Scorpion
+* source:	https://sketchfab.com/3d-models/low-poly-scorpion-5058385abe644476bc964b5eb2dab0b2
+* author:	kindingerlek (https://sketchfab.com/kindingerlek)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low Poly Scorpion" (https://sketchfab.com/3d-models/low-poly-scorpion-5058385abe644476bc964b5eb2dab0b2) by kindingerlek (https://sketchfab.com/kindingerlek) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

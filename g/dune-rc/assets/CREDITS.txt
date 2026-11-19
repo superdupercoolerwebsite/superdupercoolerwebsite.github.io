@@ -1,0 +1,11 @@
+3D models used in Dune RC (all from Sketchfab). Credit is required by their licences.
+
+Dune buggy:    "HCR2 Buggy" by oakar258 - CC-BY-4.0 - https://sketchfab.com/3d-models/hcr2-buggy-a65fe5c27464448cbce7fe61c49159ef
+Desert truck:  "Toyota Baja Trophy Truck 3D Model" by Superfamicom - CC-BY-4.0 - https://sketchfab.com/3d-models/toyota-baja-trophy-truck-3d-model-6bf711bf8e2a4e9aa2cedf30abdb02d9
+Scorpion:      "Low Poly Scorpion" by kindingerlek - CC-BY-4.0 - https://sketchfab.com/3d-models/low-poly-scorpion-5058385abe644476bc964b5eb2dab0b2
+Snake:         "Snake [Low Poly]" by endbored - CC-BY-4.0 - https://sketchfab.com/3d-models/snake-low-poly-f9c8ea5d88b44854b7dfafcdcfe1b906
+Camel:         "Camel" by eb78 - CC-BY-4.0 - https://sketchfab.com/3d-models/camel-99af7daa5baf450ea7b809937937e6d5
+Litter:        "Trash and Debris" by mcsteegs - Sketchfab Standard licence - https://sketchfab.com/3d-models/trash-and-debris-831a2b9fb9cd413abb5f178e8d3eb3f6
+Litter:        "trash pack" by Man1ac (Vlad) - CC-BY-4.0 - https://sketchfab.com/3d-models/trash-pack-c6a47b02e6164a6084b8e0a1e16c025e
+Litter:        "Dirty Plastic Bottles Trash - 3 Piece Set" by Sunbox Games - CC-BY-4.0 - https://sketchfab.com/3d-models/dirty-plastic-bottles-trash-3-piece-set-b8ab841a17e448058d8080f98d37a714
+Trailer:       "Trailer" by svartfilin - CC-BY-4.0 - https://sketchfab.com/3d-models/trailer-5a53a60a27144183ab825f559ed73a80
