@@ -171,7 +171,12 @@ function render(t) {
     t.btn.innerHTML = `<span class="dot look"></span><span class="name">${esc(q)}</span><span class="x" title="Close tab">&times;</span>`;
   } else if (w.startsWith('wiki:')) {
     const title = w.slice(5), f = document.createElement('iframe');
-    f.src = 'https://en.wikipedia.org/wiki/' + encodeURIComponent(title.replace(/ /g, '_'));
+    // the article is fetched and shown as its own closed-off page (it cannot touch this site)
+    const name = encodeURIComponent(title.replace(/ /g, '_'));
+    f.sandbox = 'allow-scripts allow-popups allow-popups-to-escape-sandbox';
+    fetch('https://en.wikipedia.org/api/rest_v1/page/mobile-html/' + name).then(r => { if (!r.ok) throw 0; return r.text(); })
+      .then(html => { f.srcdoc = html.replace(/<head>/i, '<head><base href="https://en.wikipedia.org/wiki/" target="_blank">'); })
+      .catch(() => { f.removeAttribute('sandbox'); f.src = 'https://en.wikipedia.org/wiki/' + name; });
     t.view.appendChild(f);
     t.btn.innerHTML = `<span class="dot look"></span><span class="name">${esc(title)}</span><span class="x" title="Close tab">&times;</span>`;
   } else {
