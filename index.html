@@ -77,17 +77,17 @@
   .buddy { position: absolute; left: 16px; bottom: 14px; z-index: 1; display: flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 13px; background: #ffffffd9; border: 2px solid #2a235026; color: #2a2350; font-family: "Pixelify Sans", system-ui, sans-serif; font-size: 15px; box-shadow: 0 4px 0 #1d174622; }
   .buddy b { font-weight: 700; } .buddy b.off { color: #b4530a; }
   /* pixel widget cards */
-  .widgets { margin-top: 28px; width: min(560px, 100%); display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-  .wg { min-height: 96px; padding: 12px 14px; border-radius: 16px; background: #fbfaffe6; border: 3px solid #2a2350; box-shadow: 0 6px 0 #1d1746; color: #2a2350; font-family: "Pixelify Sans", system-ui, sans-serif; display: flex; flex-direction: column; gap: 5px; }
-  .wg .h { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; opacity: .55; }
-  .wg .clock { font-size: 36px; font-weight: 700; line-height: .95; }
-  .wg .date { font-size: 14px; opacity: .8; }
-  .wg .wrow { display: flex; align-items: center; gap: 10px; }
-  .wg .ico { font-size: 30px; line-height: 1; }
-  .wg .temp { font-size: 32px; font-weight: 700; line-height: 1; }
-  .wg .city { font-size: 13px; opacity: .8; }
+  .widgets { margin-top: 22px; width: min(440px, 100%); display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+  .wg { min-height: 58px; padding: 7px 9px; border-radius: 11px; background: #fbfaffe6; border: 2px solid #2a2350; box-shadow: 0 4px 0 #1d1746; color: #2a2350; font-family: "Pixelify Sans", system-ui, sans-serif; display: flex; flex-direction: column; gap: 2px; }
+  .wg .h { font-size: 9px; letter-spacing: .5px; text-transform: uppercase; opacity: .55; }
+  .wg .clock { font-size: 21px; font-weight: 700; line-height: 1; }
+  .wg .date { font-size: 10px; opacity: .8; }
+  .wg .wrow { display: flex; align-items: center; gap: 6px; }
+  .wg .ico { font-size: 17px; line-height: 1; }
+  .wg .temp { font-size: 19px; font-weight: 700; line-height: 1; }
+  .wg .city { font-size: 10px; opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .wg .city a { color: #7a4bd0; }
-  .wg textarea { flex: 1; min-height: 46px; resize: none; border: 0; background: none; outline: none; font: 16px/1.35 "Pixelify Sans", system-ui, sans-serif; color: #2a2350; }
+  .wg textarea { flex: 1; min-height: 30px; resize: none; border: 0; background: none; outline: none; font: 12px/1.25 "Pixelify Sans", system-ui, sans-serif; color: #2a2350; }
   .wg textarea::placeholder { color: #8b84b4; }
 </style>
 </head>
