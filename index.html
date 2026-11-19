@@ -94,21 +94,16 @@
   .chip { padding: 9px 17px; border-radius: 20px; background: var(--panel); border: 1px solid var(--line); color: var(--dim); font-weight: 600; font-size: 13px; transition: all .15s; }
   .chip:hover { color: var(--text); border-color: var(--raise); }
   .chip.on { color: #0b0c12; background: linear-gradient(135deg, var(--acc), var(--acc2)); border-color: transparent; box-shadow: 0 4px 18px var(--glow); }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(236px, 1fr)); gap: 18px; }
-  .card { position: relative; display: block; text-align: left; border-radius: 16px; overflow: hidden; background: var(--panel); border: 1px solid var(--line); transition: transform .14s, border-color .14s, box-shadow .14s; }
-  .card:hover, .card:focus-visible { transform: translateY(-5px); border-color: var(--acc); box-shadow: 0 16px 34px #0009, 0 0 0 1px var(--acc), 0 0 22px var(--glow); outline: 0; }
-  .card::after { content: ""; position: absolute; top: calc(50% - 26px); left: calc(50% - 26px); width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, var(--acc), var(--acc2)) padding-box; opacity: 0; transform: scale(.6); transition: opacity .16s, transform .16s; pointer-events: none;
-    box-shadow: 0 6px 20px #000a; }
-  .card::before { content: ""; position: absolute; top: calc(50% - 10px); left: calc(50% - 6px); z-index: 2; width: 0; height: 0; opacity: 0; transition: opacity .16s;
-    border-left: 16px solid #fff; border-top: 10px solid transparent; border-bottom: 10px solid transparent; filter: drop-shadow(0 1px 1px #0006); margin-left: 3px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(122px, 1fr)); gap: 12px; }
+  .card { position: relative; display: block; aspect-ratio: 1 / 1; overflow: hidden; background: none; border: 0; transition: transform .14s, box-shadow .14s; }
+  .card:hover, .card:focus-visible { transform: translateY(-3px) scale(1.04); box-shadow: 0 12px 28px #000b, 0 0 0 2px var(--acc), 0 0 20px var(--glow); outline: 0; z-index: 1; }
+  .card::after { content: ""; position: absolute; top: calc(50% - 22px); left: calc(50% - 22px); width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--acc), var(--acc2)); opacity: 0; transform: scale(.6); transition: opacity .16s, transform .16s; pointer-events: none; box-shadow: 0 6px 18px #000a; }
+  .card::before { content: ""; position: absolute; top: calc(50% - 9px); left: calc(50% - 5px); z-index: 2; width: 0; height: 0; opacity: 0; transition: opacity .16s; border-left: 14px solid #fff; border-top: 9px solid transparent; border-bottom: 9px solid transparent; filter: drop-shadow(0 1px 1px #0006); margin-left: 3px; }
   .card:hover::after { opacity: .96; transform: scale(1); }
   .card:hover::before { opacity: 1; }
-  .card .art { aspect-ratio: 16 / 9; display: flex; align-items: flex-end; padding: 12px 14px; position: relative; overflow: hidden; }
+  .card .art { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 8px; }
   .art.pic { background-size: cover; background-position: center; }
-  .art:not(.pic)::before { content: attr(data-l); position: absolute; right: -8px; top: -34px; font-size: 150px; font-weight: 900; color: #fff2; line-height: 1; }
-  .art span { font-size: 22px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px #0008; position: relative; }
-  .card small { display: block; margin-top: 6px; font-size: 11.5px; color: #6f7590; }
-  .card p { margin: 0; padding: 12px 14px 14px; color: var(--dim); min-height: 60px; font-size: 13px; }
+  .art:not(.pic) span { font-size: clamp(12px, 2.2vw, 17px); font-weight: 800; color: #fff; text-align: center; text-shadow: 0 2px 10px #0008; line-height: 1.15; }
   .empty { text-align: center; color: var(--dim); padding: 40px 0; grid-column: 1 / -1; }
 
   /* ---- search results page ---- */
@@ -396,9 +391,11 @@ function home(t) {
     for (const g of list) {
       const c = document.createElement('button');
       c.className = 'card';
+      c.title = g.name;
+      // the picture fills the whole square; games that have no picture yet show their name on a colour tile instead
       c.innerHTML = g.art
-        ? `<div class="art pic" style="background-image:url('${g.art}')" role="img" aria-label="${esc(g.name)}"></div><p>${esc(g.about)}${g.by ? `<small>by ${esc(g.by)} &middot; ${esc(g.license || '')}</small>` : ''}</p>`
-        : `<div class="art" data-l="${esc(g.name[0])}" style="background:${grad(g)}"><span>${esc(g.name)}</span></div><p>${esc(g.about)}${g.by ? `<small>by ${esc(g.by)} &middot; ${esc(g.license || '')}</small>` : ''}</p>`;
+        ? `<div class="art pic" style="background-image:url('${g.art}')" role="img" aria-label="${esc(g.name)}"></div>`
+        : `<div class="art" style="background:${grad(g)}"><span>${esc(g.name)}</span></div>`;
       c.onclick = e => { if (e.ctrlKey || e.metaKey) newTab(g.id); else go(t, g.id); };
       c.onauxclick = e => { if (e.button === 1) { const was = cur; newTab(g.id); show(was); } };
       grid.appendChild(c);
