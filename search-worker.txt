@@ -1,0 +1,31 @@
+// The small search server for superdupercoolerwebsite (a Cloudflare Worker).
+// It takes ?q=words from the site, asks Serper (Google results), and sends back a short list.
+// The Serper key lives here as a secret called SEARCH_KEY, so it is never visible on the website.
+const ALLOWED = ['https://superdupercoolerwebsite.github.io', 'http://127.0.0.1:9100'];
+
+export default {
+  async fetch(request, env) {
+    const origin = request.headers.get('Origin') || '';
+    const cors = { 'Access-Control-Allow-Origin': ALLOWED.includes(origin) ? origin : ALLOWED[0], 'Vary': 'Origin' };
+    const send = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' } });
+
+    if (request.method === 'OPTIONS') return new Response(null, { headers: { ...cors, 'Access-Control-Allow-Methods': 'GET' } });
+    // only the website itself may use this (so nobody else spends the search allowance)
+    if (!ALLOWED.includes(origin)) return send({ error: 'not allowed' }, 403);
+
+    const q = (new URL(request.url).searchParams.get('q') || '').trim().slice(0, 200);
+    if (!q) return send({ results: [] });
+    if (!env.SEARCH_KEY) return send({ error: 'no key set' }, 500);
+
+    const r = await fetch('https://google.serper.dev/search', {
+      method: 'POST',
+      headers: { 'X-API-KEY': env.SEARCH_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ q, num: 20 }),
+    });
+    if (!r.ok) return send({ error: 'search service said ' + r.status }, 502);
+    const j = await r.json();
+    const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
+    const results = (j.organic || []).map((x) => ({ title: x.title || '', url: x.link || '', text: x.snippet || '', site: host(x.link), thumb: x.imageUrl || '' }));
+    return send({ results });
+  },
+};
