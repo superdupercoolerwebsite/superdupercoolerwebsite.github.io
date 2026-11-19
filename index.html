@@ -96,7 +96,7 @@
     <button class="nav" id="homeBtn" title="Home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></button>
     <div id="addrWrap">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
-      <input id="addr" spellcheck="false" autocomplete="off" placeholder="Search games or look anything up">
+      <input id="addr" spellcheck="false" autocomplete="off" placeholder="Look anything up">
       <div id="sug"></div>
     </div>
     <button class="nav" id="full" title="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -246,7 +246,7 @@ function results(t, q) {
     b.onauxclick = e => { if (e.button === 1) { const was = cur; newTab(open); show(was); } };
     return b;
   };
-  const mine = search(q).map(g => row(`<span class="rp" style="background:${g.art ? `center/cover url('${g.art}')` : grad(g)}"></span>`, g.name, g.about, 'Game on this site', g.id));
+  const mine = [];
   const put = rows => { list.innerHTML = ''; for (const b of mine) list.appendChild(b); for (const b of rows) list.appendChild(b); };
   const none = msg => list.insertAdjacentHTML('beforeend', `<div class="empty">${msg}</div>`);
   // a result from the web is a real link: it opens the real site in a new browser tab
@@ -276,9 +276,8 @@ function results(t, q) {
 // ---------- the address / search bar ----------
 function suggest() {
   const q = addr.value.trim();
-  // what Enter can open: games that match, then looking the words up
-  shown = search(q).slice(0, 5).map(g => ({ where: g.id, html: `<span class="dot" style="background:${g.art ? `center/cover url('${g.art}')` : grad(g)}"></span><b>${esc(g.name)}</b><span>${esc(g.about)}</span>` }));
-  if (q && !/^arcade:/i.test(q)) shown.push({ where: 'search:' + q, html: `<span class="dot look"></span><b>${esc(q)}</b><span>Look this up</span>` });
+  // the top bar only looks things up (games are searched with the box on the home page)
+  shown = q && !/^arcade:/i.test(q) ? [{ where: 'search:' + q, html: `<span class="dot look"></span><b>${esc(q)}</b><span>Look this up</span>` }] : [];
   sel = 0;
   sug.innerHTML = shown.map((o, i) => `<button class="s${i === 0 ? ' on' : ''}" data-i="${i}">${o.html}</button>`).join('');
   sug.classList.toggle('show', shown.length > 0);
