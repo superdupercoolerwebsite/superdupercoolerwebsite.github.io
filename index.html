@@ -96,7 +96,7 @@
     <button class="nav" id="homeBtn" title="Home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></button>
     <div id="addrWrap">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
-      <input id="addr" spellcheck="false" autocomplete="off" placeholder="Look anything up">
+      <input id="addr" spellcheck="false" autocomplete="off" placeholder="Search Google">
       <div id="sug"></div>
     </div>
     <button class="nav" id="full" title="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
@@ -168,7 +168,12 @@ function render(t) {
     t.btn.innerHTML = `<span class="dot" style="background:${grad(g)}"></span><span class="name">${esc(g.name)}</span><span class="x" title="Close tab">&times;</span>`;
   } else if (w.startsWith('search:')) {
     const q = w.slice(7);
-    t.view.appendChild(results(t, q));
+    // Google itself, running inside the tab (its own embeddable mode). The results list from the search server
+    // (results()) is kept in the code but no longer used.
+    const f = document.createElement('iframe');
+    f.src = 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(q);
+    f.referrerPolicy = 'no-referrer';
+    t.view.appendChild(f);
     t.btn.innerHTML = `<span class="dot look"></span><span class="name">${esc(q)}</span><span class="x" title="Close tab">&times;</span>`;
   } else if (w.startsWith('wiki:')) {
     const title = w.slice(5), f = document.createElement('iframe');
@@ -277,7 +282,7 @@ function results(t, q) {
 function suggest() {
   const q = addr.value.trim();
   // the top bar only looks things up (games are searched with the box on the home page)
-  shown = q && !/^arcade:/i.test(q) ? [{ where: 'search:' + q, html: `<span class="dot look"></span><b>${esc(q)}</b><span>Look this up</span>` }] : [];
+  shown = q && !/^arcade:/i.test(q) ? [{ where: 'search:' + q, html: `<span class="dot look"></span><b>${esc(q)}</b><span>Search Google</span>` }] : [];
   sel = 0;
   sug.innerHTML = shown.map((o, i) => `<button class="s${i === 0 ? ' on' : ''}" data-i="${i}">${o.html}</button>`).join('');
   sug.classList.toggle('show', shown.length > 0);
