@@ -57,6 +57,23 @@
   .pbar svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   #player iframe { flex: 1; min-height: 0; width: 100%; border: 0; background: #000; display: block; }
 
+  /* hidden "key": a faint dot bottom-left (also opens with the ` key) */
+  #webkey { position: fixed; left: 7px; bottom: 7px; z-index: 40; width: 16px; height: 16px; border-radius: 50%; background: #ffffff; opacity: .07; transition: opacity .2s, transform .2s; }
+  #webkey:hover, #webkey:focus-visible { opacity: .55; transform: scale(1.15); outline: none; }
+
+  /* hidden web browser (through the proxy) */
+  #web { position: fixed; inset: 0; z-index: 60; background: #0b0c11; display: none; flex-direction: column; }
+  #web.on { display: flex; }
+  .wbar { flex: none; display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 10px; background: #141021; border-bottom: 2px solid var(--ink); }
+  .wbar button { height: 32px; padding: 0 11px; border-radius: 9px; background: #ffffff14; color: #edeff7; font-weight: 700; display: flex; align-items: center; gap: 6px; flex: none; }
+  .wbar button:hover { background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #fff; }
+  .wbar svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .wbar form { flex: 1; min-width: 0; display: flex; }
+  .wbar input { flex: 1; min-width: 0; height: 34px; padding: 0 14px; border-radius: 9px; background: #ffffff10; border: 1px solid #ffffff1f; outline: none; color: #edeff7; font-size: 14px; }
+  .wbar input:focus { border-color: var(--acc); background: #ffffff18; }
+  .wbar input::placeholder { color: #8b84b4; }
+  #wframe { flex: 1; min-height: 0; width: 100%; border: 0; background: #0b0c11; display: block; }
+
   @media (prefers-reduced-motion: reduce) { .star { animation: none; } * { transition: none !important; } }
 </style>
 </head>
@@ -79,6 +96,17 @@
       <button id="pfull" title="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Full screen</button>
     </div>
     <iframe id="pframe" allow="fullscreen; gamepad; autoplay" title="game"></iframe>
+  </div>
+
+  <button id="webkey" title=" " aria-label="open"></button>
+
+  <div id="web">
+    <div class="wbar">
+      <button id="wback" title="Close"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <form id="wform"><input id="wq" placeholder="Search or type a web address" spellcheck="false" autocapitalize="off" autocomplete="off" enterkeyhint="go"></form>
+      <button id="wfull" title="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </div>
+    <iframe id="wframe" allow="fullscreen; autoplay" title="web"></iframe>
   </div>
 
 <script>
@@ -182,6 +210,29 @@ function cloudBand(baseY, step, color, seed) {
   return `<path d="${d} L1200 700 Z" fill="${color}"/>`;
 }
 buildSky($('#sky'));
+
+// ---- hidden web browser (through the proxy) ----
+let PROXY = '';
+fetch('proxy.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { PROXY = (j && j.proxy || '').replace(/\/+$/, ''); }).catch(() => {});
+function openWeb(text) {
+  const v = (text || '').trim();
+  if (!v || !PROXY) return;
+  const looksUrl = /^https?:\/\//i.test(v) || (/^[a-z0-9-]+(\.[a-z0-9-]+)+(\/|:|\?|$)/i.test(v) && !/\s/.test(v));
+  const dest = /^https?:\/\//i.test(v) ? v : looksUrl ? 'https://' + v : 'https://duckduckgo.com/?q=' + encodeURIComponent(v);
+  $('#wframe').src = PROXY + '/go.html#' + encodeURIComponent(dest);
+  $('#web').classList.add('on');
+}
+function showWeb() { $('#web').classList.add('on'); requestAnimationFrame(() => $('#wq').focus()); }
+function closeWeb() { $('#web').classList.remove('on'); $('#wframe').src = 'about:blank'; }
+$('#webkey').onclick = showWeb;
+$('#wback').onclick = closeWeb;
+$('#wform').onsubmit = e => { e.preventDefault(); openWeb($('#wq').value); };
+$('#wfull').onclick = () => { const f = $('#wframe'); if (document.fullscreenElement) document.exitFullscreen(); else f.requestFullscreen().then(() => f.focus()).catch(() => {}); };
+addEventListener('keydown', e => {
+  const typing = /^(INPUT|TEXTAREA)$/.test((e.target.tagName || ''));
+  if (e.key === '`' && !typing) { e.preventDefault(); $('#web').classList.contains('on') ? closeWeb() : showWeb(); }
+  if (e.key === 'Escape' && $('#web').classList.contains('on') && !document.fullscreenElement) closeWeb();
+});
 
 // ---- load games ----
 Promise.all([
