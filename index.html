@@ -139,7 +139,15 @@ const sameUrl = (a, b) => { try { return new URL(a).href === new URL(b).href; } 
    Pages open through a proxy so that almost any site loads inside a tab, shut in a box that cannot download files.
    On this PC the proxy is the local one (port 9200); online, proxy.json says where it is. */
 let PROXY = null;
-const proxyAt = base => fetch(base + '/health').then(r => r.json()).then(j => { if (j.ok) PROXY = base; });
+// Once the proxy is found, a hidden page on its address is kept open for the whole visit. It starts the proxy's
+// connection once and holds it, so opening a page never has to wait for (or trip over) a restart.
+const keepAlive = base => new Promise(res => {
+  const k = document.createElement('iframe'); k.hidden = true; k.title = 'Proxy connection'; k.sandbox = 'allow-scripts allow-same-origin';
+  const done = e => { if (e && (e.origin !== base || !e.data || e.data.sdcw !== 'ready')) return; removeEventListener('message', done); res(); };
+  addEventListener('message', done); setTimeout(() => done(), 7000);
+  k.src = base + '/keep.html'; document.body.appendChild(k);
+});
+const proxyAt = base => fetch(base + '/health').then(r => r.json()).then(j => { if (j.ok) { PROXY = base; return keepAlive(base); } });
 const proxyReady = (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)
   ? proxyAt(`http://${location.hostname}:9200`)
   : fetch('proxy.json').then(r => r.ok ? r.json() : {}).then(j => /^https:\/\/[\w.-]+$/.test(j.proxy || '') ? proxyAt(j.proxy) : 0)).catch(() => {});
