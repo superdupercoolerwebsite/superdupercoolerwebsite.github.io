@@ -111,7 +111,7 @@ function fill() {
   for (const g of list) {
     const c = document.createElement('button');
     c.className = 'card'; c.title = g.about || g.name;
-    c.style.background = grad(g);
+    c.style.background = g.art ? `url('${g.art}') center / ${g.fit || 'cover'} no-repeat, ${grad(g)}` : grad(g);
     c.innerHTML = `<span class="pl"><span></span></span><p class="nm pix">${esc(g.name)}</p>`;
     c.onclick = () => openGame(g);
     grid.appendChild(c);
