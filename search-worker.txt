@@ -1,7 +1,7 @@
 // The small search server for superdupercoolerwebsite (a Cloudflare Worker).
 // It takes ?q=words from the site, asks Serper (Google results), and sends back a short list.
 // The Serper key lives here as a secret called SEARCH_KEY, so it is never visible on the website.
-const ALLOWED = ['https://superdupercoolerwebsite.github.io', 'http://127.0.0.1:9100'];
+const ALLOWED = ['https://superdupercoolerwebsite.github.io', 'https://144-24-18-8.sslip.io', 'http://localhost:9100', 'http://127.0.0.1:9100'];
 
 export default {
   async fetch(request, env) {
