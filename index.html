@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>superdupercoolerwebsite</title>
-<link rel="icon" type="image/png" href="icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=2">
+<link rel="icon" type="image/png" sizes="256x256" href="icon.png?v=2">
+<link rel="apple-touch-icon" href="icon.png?v=2">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&display=swap">
 <style>
@@ -198,7 +200,7 @@ function go(t, where, keep) {
 }
 function label(t) {
   const w = here(t), home = w === 'home', own = inner(w);
-  t.btn.innerHTML = (t.busy ? '<span class="spin"></span>' : `<img class="fav" src="${own ? 'icon.png' : esc(favOf(w))}" alt="" referrerpolicy="no-referrer">`)
+  t.btn.innerHTML = (t.busy ? '<span class="spin"></span>' : `<img class="fav" src="${own ? 'icon.png?v=2' : esc(favOf(w))}" alt="" referrerpolicy="no-referrer">`)
     + `<span class="name">${esc(home ? 'New tab' : w === EXT_PAGE ? 'Extensions' : isStore(w) ? 'Extension Store' : isExtFile(w) ? 'Extension page' : t.title || hostOf(w))}</span><span class="x" title="Close tab">&times;</span>`;
 }
 function render(t) {
