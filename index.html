@@ -164,8 +164,20 @@ function fill() {
 $('#more').onclick = more;
 
 // ---- the in-site game player ----
+// On a filtered network (school, ad-blocker) the game host is blocked, so games are loaded
+// through the proxy instead. We test once whether the host is reachable and route accordingly.
+let BLOCKED = false;
+(function detectBlock() {
+  const i = new Image();
+  const t = setTimeout(() => { BLOCKED = true; }, 6000);
+  i.onload = () => { clearTimeout(t); BLOCKED = false; };
+  i.onerror = () => { clearTimeout(t); BLOCKED = true; };
+  i.src = 'https://img.gamemonetize.com/osm7ce5njwn43zxsfdfx0y4eluu9cke9/512x384.jpg?b=' + Date.now();
+})();
 function openGame(g) {
-  $('#pframe').src = g.url ? g.url : `g/${g.id}/${g.page}`;
+  let src = g.url ? g.url : `g/${g.id}/${g.page}`;
+  if (g.url && BLOCKED && PROXY) src = PROXY + '/go.html#' + encodeURIComponent(g.url);   // blocked network → go through the proxy
+  $('#pframe').src = src;
   $('#pname').textContent = g.name;
   $('#player').classList.add('on');
   requestAnimationFrame(() => $('#pframe').focus());
