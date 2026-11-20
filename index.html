@@ -59,8 +59,6 @@
   #addr::placeholder { color: var(--dim); }
   @media (max-width: 560px) { #chip span { display: none; } #chip { padding: 0 6px; } #home, #full { display: none; } }
 
-  #extPanel { position: fixed; top: 96px; right: 12px; z-index: 50; width: min(360px, calc(100vw - 24px)); height: min(520px, calc(100dvh - 120px)); border: 1px solid #ffffff22; border-radius: 12px; background: #292a2d; box-shadow: 0 18px 50px #000b; }
-  #extPanel[hidden] { display: none; }
 
   /* ---- pages ---- */
   #views { flex: 1; min-height: 0; position: relative; background: var(--bg); }
@@ -115,12 +113,10 @@
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input id="addr" placeholder="Search or enter website" spellcheck="false" autocapitalize="off" enterkeyhint="go">
     </form>
-    <button class="ib" id="ext" title="Extensions" aria-label="Extensions"><svg viewBox="0 0 24 24"><path d="M9 4.500a2 2 0 0 1 4 0V6h4a1 1 0 0 1 1 1v4h1.500a2 2 0 0 1 0 4H18v4a1 1 0 0 1-1 1h-4v-1.500a2 2 0 0 0-4 0V20H5a1 1 0 0 1-1-1v-4h1.500a2 2 0 0 0 0-4H4V7a1 1 0 0 1 1-1h4z"/></svg></button>
     <button class="ib" id="real" title="Open this page in a real tab" aria-label="Open in a real tab"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>
     <button class="ib" id="full" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   </div>
   <div id="views"></div>
-  <iframe id="extPanel" title="Extensions" hidden></iframe>
 </div>
 <script>
 'use strict';
@@ -129,11 +125,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const tabsEl = $('#tabs'), viewsEl = $('#views'), addr = $('#addr'), chip = $('#chip');
 const tabs = []; let cur = null, nextId = 1;
 const SHORTCUTS = [['Wikipedia', 'https://www.wikipedia.org/'], ['YouTube', 'https://www.youtube.com/'], ['Reddit', 'https://www.reddit.com/'], ['GitHub', 'https://github.com/'], ['Hacker News', 'https://news.ycombinator.com/'], ['Archive', 'https://archive.org/']];
-const EXT_PAGE = 'sdcw://extensions';              // the Extensions page, like chrome://extensions
-const STORE_PAGE = 'sdcw://store';               // the Extension Store
-const isStore = w => w === STORE_PAGE || w.startsWith(STORE_PAGE + '#');
-const isExtFile = w => !!PROXY && w.startsWith(PROXY + '/uv/service/~ext/');   // an extension's own page (its options)
-const inner = w => w === 'home' || w === EXT_PAGE || isStore(w) || isExtFile(w);
+const inner = w => w === 'home';
 // (Google answers a proxy with a "prove you are human" test, so it cannot be the search engine here.)
 const SEARCH = 'https://duckduckgo.com/?q=';     // searches go to DuckDuckGo, through the proxy like every page
 const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } };
@@ -162,8 +154,6 @@ function toUrl(q) {
   q = q.trim();
   if (!q) return '';
   if (/^https?:\/\//i.test(q)) return q;
-  if (/^(sdcw|chrome):\/\/extensions\/?$/i.test(q)) return EXT_PAGE;
-  if (/^(sdcw:\/\/store|chrome:\/\/webstore)\/?$/i.test(q)) return STORE_PAGE;
   if (!/\s/.test(q) && /^([\w-]+\.)+[a-z]{2,}(:\d+)?(\/.*)?$/i.test(q)) return 'https://' + q;
   return SEARCH + encodeURIComponent(q);
 }
@@ -201,7 +191,7 @@ function go(t, where, keep) {
 function label(t) {
   const w = here(t), home = w === 'home', own = inner(w);
   t.btn.innerHTML = (t.busy ? '<span class="spin"></span>' : `<img class="fav" src="${own ? 'icon.png?v=2' : esc(favOf(w))}" alt="" referrerpolicy="no-referrer">`)
-    + `<span class="name">${esc(home ? 'New tab' : w === EXT_PAGE ? 'Extensions' : isStore(w) ? 'Extension Store' : isExtFile(w) ? 'Extension page' : t.title || hostOf(w))}</span><span class="x" title="Close tab">&times;</span>`;
+    + `<span class="name">${esc(home ? 'New tab' : t.title || hostOf(w))}</span><span class="x" title="Close tab">&times;</span>`;
 }
 function render(t) {
   const w = here(t);
@@ -218,11 +208,7 @@ function render(t) {
   f.addEventListener('load', () => { t.busy = false; label(t); });
   proxyReady.then(() => {
     if (here(t) !== w || !f.isConnected) return;
-    if (w === EXT_PAGE || isStore(w) || isExtFile(w)) {
-      if (!PROXY) { f.remove(); t.busy = false; label(t); const n = document.createElement('div'); n.className = 'note'; n.textContent = 'Extensions need the proxy, and it is offline right now.'; t.view.appendChild(n); return; }
-      f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-downloads';
-      f.src = w === EXT_PAGE ? PROXY + '/ext/boot.html' : isStore(w) ? PROXY + '/ext/boot.html?to=store' + w.slice(STORE_PAGE.length) : w;
-    } else if (PROXY) {
+    if (PROXY) {
       // scripts, forms and downloads (each one asked first) work; no camera/mic/location, no taking over this window
       f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-downloads';
       f.dataset.proxied = '1'; f.dataset.first = '1';
@@ -241,13 +227,9 @@ function render(t) {
 // the proxied page reports where it really is, so the address bar, tab and Back button follow it
 addEventListener('message', e => {
   if (!PROXY || e.origin !== PROXY || !e.data) return;
-  if (e.data.sdcwPanel === 'close') { $('#extPanel').hidden = true; return; }
-  if (e.data.sdcw === 'open') {                    // an extension, or the Extensions page, asks for a new tab
+  if (e.data.sdcw === 'open') {                    // a page asks for a new window: it opens as a new tab here
     const u = String(e.data.url || '');
-    $('#extPanel').hidden = true;
-    const at = tabs.find(o => u === EXT_PAGE ? here(o) === EXT_PAGE : isStore(u) && isStore(here(o)));      // one Extensions tab, one Store tab
-    if (at) { show(at); if (u !== here(at)) go(at, u); }
-    else if (u === EXT_PAGE || isStore(u) || isExtFile(u) || /^https?:\/\//.test(u)) newTab(u);
+    if (/^https?:\/\//.test(u)) newTab(u);
     return;
   }
   if (e.data.sdcw === 'back') {                    // a finished download question returns the tab to the page before it
@@ -269,7 +251,7 @@ addEventListener('message', e => {
 function chrome() {
   if (!cur) return;
   const w = here(cur), home = w === 'home', own = inner(w);
-  if (document.activeElement !== addr) addr.value = home ? '' : isStore(w) ? STORE_PAGE : w;
+  if (document.activeElement !== addr) addr.value = home ? '' : w;
   $('#back').disabled = cur.at <= 0;
   $('#fwd').disabled = cur.at >= cur.hist.length - 1;
   $('#reload').disabled = home; $('#real').disabled = own;
@@ -277,7 +259,7 @@ function chrome() {
   chip.classList.toggle('off', !PROXY);
   chip.querySelector('span').textContent = PROXY ? 'Protected' : 'Proxy offline';
   chip.title = PROXY ? 'Opened through the proxy. Downloads ask first. Avoid typing passwords for important accounts here.' : 'The proxy cannot be reached, so pages cannot open.';
-  document.title = (home ? '' : (w === EXT_PAGE ? 'Extensions' : isStore(w) ? 'Extension Store' : cur.title || hostOf(w)) + ' - ') + 'superdupercoolerwebsite';
+  document.title = (home ? '' : (cur.title || hostOf(w)) + ' - ') + 'superdupercoolerwebsite';
 }
 
 /* ---------- new tab page ---------- */
@@ -382,16 +364,6 @@ $('#fwd').onclick = () => { if (cur.at < cur.hist.length - 1) { cur.at++; go(cur
 $('#reload').onclick = () => go(cur, here(cur), true);
 $('#home').onclick = () => go(cur, 'home');
 $('#real').onclick = () => { const w = here(cur); if (!inner(w)) window.open(w, '_blank', 'noopener,noreferrer'); };
-// the puzzle button: a small window listing the extensions (it lives on the proxy's address, where they are stored)
-$('#ext').onclick = async () => {
-  const p = $('#extPanel');
-  if (!p.hidden) { p.hidden = true; return; }
-  await proxyReady;
-  if (!PROXY) { newTab(EXT_PAGE); return; }
-  if (!p.src) { p.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups'; p.src = PROXY + '/ext/panel.html'; } else p.contentWindow.postMessage({ sdcwPanel: 'show' }, PROXY);
-  p.hidden = false;
-};
-addEventListener('pointerdown', e => { if (!e.target.closest('#ext')) $('#extPanel').hidden = true; });
 $('#full').onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); };
 $('#box').onsubmit = e => { e.preventDefault(); const u = toUrl(addr.value); if (u) { addr.blur(); go(cur, u); } };
 addr.onfocus = () => addr.select();
