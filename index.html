@@ -205,6 +205,9 @@ function label(t) {
 }
 function render(t) {
   const w = here(t);
+  // a tab that already shows a proxied page keeps its wrapper and just points it at the new address (much quicker)
+  const live = t.view.querySelector('iframe[data-live]');
+  if (live && PROXY && !t.direct && /^https?:\/\//.test(w)) { live.dataset.first = '1'; t.busy = true; label(t); live.contentWindow.postMessage({ sdcw: 'go', url: w }, PROXY); return; }
   t.view.innerHTML = ''; t.busy = false;
   if (w === 'home') { t.view.appendChild(startPage(t)); label(t); return; }
   const f = document.createElement('iframe');
@@ -252,6 +255,7 @@ addEventListener('message', e => {
   const t = tabs.find(o => { const f = o.view.querySelector('iframe[data-proxied]'); return f && f.contentWindow === e.source; });
   if (!t) return;
   const f = t.view.querySelector('iframe[data-proxied]'), url = e.data.url;
+  f.dataset.live = '1';                        // its wrapper is up and can be asked to show other addresses
   if (f.dataset.first) { delete f.dataset.first; f.dataset.t0 = Date.now(); t.hist[t.at] = url; }
   else if (Date.now() - f.dataset.t0 < 2500) t.hist[t.at] = url;        // an instant hop is a redirect, not a new page (keeps Back from bouncing)
   else if (!sameUrl(here(t), url)) { t.hist.length = t.at + 1; t.hist.push(url); t.at = t.hist.length - 1; }
