@@ -49,7 +49,10 @@
   #box:focus-within { border-color: var(--acc); box-shadow: 0 0 0 3px var(--glow); }
   #chip { display: flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 12px; font-size: 12px; font-weight: 700; white-space: nowrap; flex: none; background: #4ade801c; color: var(--ok); }
   #chip svg { width: 13px; height: 13px; }
-  #chip.off { background: var(--panel2); color: var(--dim); }
+  #chip { cursor: pointer; user-select: none; transition: filter .12s; }
+  #chip:hover { filter: brightness(1.25); }
+  #chip.off { background: var(--panel2); color: var(--dim); cursor: default; }
+  #chip.direct { background: #fbbf2426; color: #fbbf24; }
   #chip[hidden] { display: none; }
   #addr { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; font-size: 14.5px; }
   #addr::placeholder { color: var(--dim); }
@@ -213,7 +216,7 @@ function render(t) {
       if (!PROXY) { f.remove(); t.busy = false; label(t); const n = document.createElement('div'); n.className = 'note'; n.textContent = 'Extensions need the proxy, and it is offline right now.'; t.view.appendChild(n); return; }
       f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
       f.src = w === EXT_PAGE ? PROXY + '/ext/boot.html' : isStore(w) ? PROXY + '/ext/boot.html?to=store' + w.slice(STORE_PAGE.length) : w;
-    } else if (PROXY) {
+    } else if (PROXY && !t.direct) {
       // scripts and forms work; no downloads, no camera/mic/location, no taking over this window
       f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
       f.dataset.proxied = '1'; f.dataset.first = '1';
@@ -223,7 +226,7 @@ function render(t) {
       f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
       f.src = w;
       const n = document.createElement('div'); n.className = 'note';
-      n.innerHTML = `<span>The proxy is offline, so some sites stay blank.</span><a href="${esc(w)}" target="_blank" rel="noopener noreferrer">Open in a real tab</a>`;
+      n.innerHTML = `<span>${t.direct && PROXY ? 'The proxy is off for this tab. Sites that refuse to be shown inside another page stay blank.' : 'The proxy is offline, so some sites stay blank.'}</span><a href="${esc(w)}" target="_blank" rel="noopener noreferrer">Open in a real tab</a>`;
       t.view.appendChild(n);
     }
     if (t === cur) chrome();
@@ -258,10 +261,12 @@ function chrome() {
   $('#back').disabled = cur.at <= 0;
   $('#fwd').disabled = cur.at >= cur.hist.length - 1;
   $('#reload').disabled = home; $('#real').disabled = own;
-  chip.hidden = own;
+  // the chip is also the switch: click it to turn the proxy off or on for this tab (new tabs start with it on)
+  chip.hidden = own && !home;
   chip.classList.toggle('off', !PROXY);
-  chip.querySelector('span').textContent = PROXY ? 'Protected' : 'Direct';
-  chip.title = PROXY ? 'Opened through the proxy. Downloads are blocked. Avoid typing passwords for important accounts here.' : 'The proxy is offline, so this page is loaded directly.';
+  chip.classList.toggle('direct', !!PROXY && !!cur.direct);
+  chip.querySelector('span').textContent = !PROXY ? 'Direct' : cur.direct ? 'Proxy off' : 'Protected';
+  chip.title = !PROXY ? 'The proxy is offline, so this page is loaded directly.' : cur.direct ? 'The proxy is off for this tab: pages load straight from your own connection, and extensions do not run. Click to turn it back on.' : 'Opened through the proxy. Downloads are blocked. Click to turn the proxy off for this tab.';
   document.title = (home ? '' : (w === EXT_PAGE ? 'Extensions' : isStore(w) ? 'Extension Store' : cur.title || hostOf(w)) + ' - ') + 'superdupercoolerwebsite';
 }
 
@@ -361,6 +366,7 @@ function cloudBank(color, baseY, rise) {
 
 /* ---------- toolbar ---------- */
 $('#newtab').onclick = () => newTab();
+chip.onclick = () => { if (!PROXY || !cur) return; cur.direct = !cur.direct; if (here(cur) === 'home') chrome(); else go(cur, here(cur), true); };
 $('#back').onclick = () => { if (cur.at > 0) { cur.at--; go(cur, here(cur), true); } };
 $('#fwd').onclick = () => { if (cur.at < cur.hist.length - 1) { cur.at++; go(cur, here(cur), true); } };
 $('#reload').onclick = () => go(cur, here(cur), true);
@@ -390,6 +396,7 @@ window.SDCW = { tabs, go, newTab, toUrl, proxyReady, get cur() { return cur; }, 
 const first = new URLSearchParams(location.search).get('q');
 newTab(first ? toUrl(first) : 'home');
 if (first) history.replaceState(null, '', location.pathname);
+proxyReady.then(() => chrome());       // the chip can only say "Protected" once the proxy has been found
 </script>
 </body>
 </html>
