@@ -42,8 +42,10 @@
   .card:hover .pl { opacity: 1; }
   .card .pl span { width: 44px; height: 44px; border-radius: 50%; background: #ffffffe6; display: grid; place-items: center; box-shadow: 0 4px 0 #0005; }
   .card .pl span::after { content: ""; margin-left: 3px; border-left: 15px solid var(--ink); border-top: 9px solid transparent; border-bottom: 9px solid transparent; }
+  .card .thumb { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; background: #0003; }
   .empty { grid-column: 1 / -1; text-align: center; color: #e7e2fb; padding: 36px 0; font-size: 15px; }
-  .count { margin: 20px 0 0; color: #e7e2fbcc; font-size: 13px; }
+  #more { margin: 24px auto 0; height: 42px; padding: 0 28px; font-size: 15px; }
+  .count { margin: 14px 0 0; color: #e7e2fbcc; font-size: 13px; }
 
   /* game player */
   #player { position: fixed; inset: 0; z-index: 50; background: #0b0c11; display: none; flex-direction: column; }
@@ -66,6 +68,7 @@
     <form class="big" id="searchForm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" placeholder="Search games…" spellcheck="false" autocapitalize="off" enterkeyhint="search"></form>
     <div class="chips" id="chips"></div>
     <div class="grid" id="grid"></div>
+    <button id="more" class="chip pix" hidden>Show more</button>
     <p class="count pix" id="count"></p>
   </div>
 
@@ -82,10 +85,12 @@
 'use strict';
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const grad = g => `linear-gradient(135deg, ${g.colors[0]}, ${g.colors[1]})`;
-let GAMES = [], cat = '';
+const PAL = [['#8b5cf6', '#ff5fa2'], ['#3b82f6', '#22d3ee'], ['#22c55e', '#a3e635'], ['#f43f5e', '#fb7185'], ['#f59e0b', '#ef4444'], ['#818cf8', '#c084fc'], ['#06b6d4', '#3b82f6'], ['#ec4899', '#8b5cf6']];
+const grad = g => { const c = g.colors || PAL[[...g.id].reduce((a, ch) => a + ch.charCodeAt(0), 0) % PAL.length]; return `linear-gradient(135deg, ${c[0]}, ${c[1]})`; };
+let GAMES = [], cat = '', list = [], shown = 0;
+const PAGE = 120;
 
-const CATS = [['All', ''], ['Racing', 'racing'], ['Arcade', 'arcade runner'], ['Puzzle', 'puzzle'], ['Action', 'shooter action platformer'], ['Chill', 'chill idle clicker adventure casual']];
+const CATS = [['All', ''], ['Racing', 'racing'], ['Arcade', 'arcade runner'], ['Puzzle', 'puzzle'], ['Action', 'shooter action platformer'], ['Sports', 'sports'], ['Chill', 'chill idle clicker adventure casual hypercasual']];
 
 // which games match the typed words (every word must appear somewhere), best first
 function search(q) {
@@ -93,7 +98,7 @@ function search(q) {
   if (!words.length) return GAMES.slice();
   const out = [];
   for (const g of GAMES) {
-    const name = g.name.toLowerCase(), all = name + ' ' + g.id + ' ' + g.tags + ' ' + g.about.toLowerCase();
+    const name = g.name.toLowerCase(), all = name + ' ' + g.id + ' ' + (g.tags || '') + ' ' + (g.about || '').toLowerCase();
     let score = 0, ok = true;
     for (const w of words) {
       if (name.startsWith(w)) score += 5; else if (name.includes(w)) score += 3; else if (all.includes(w)) score += 1; else { ok = false; break; }
@@ -104,24 +109,34 @@ function search(q) {
 }
 const inCat = g => !cat || cat.split(' ').some(w => (g.tags + ' ' + g.id + ' ' + g.name).toLowerCase().includes(w));
 
-function fill() {
-  const grid = $('#grid'), list = search($('#q').value).filter(inCat);
-  grid.innerHTML = '';
-  if (!list.length) { grid.innerHTML = `<div class="empty">No game matches${$('#q').value ? ` “${esc($('#q').value)}”` : ' that'}.</div>`; $('#count').textContent = ''; return; }
-  for (const g of list) {
-    const c = document.createElement('button');
-    c.className = 'card'; c.title = g.about || g.name;
-    c.style.background = g.art ? `url('${g.art}') center / ${g.fit || 'cover'} no-repeat, ${grad(g)}` : grad(g);
-    c.innerHTML = `<span class="pl"><span></span></span><p class="nm pix">${esc(g.name)}</p>`;
-    c.onclick = () => openGame(g);
-    grid.appendChild(c);
-  }
-  $('#count').textContent = list.length + (list.length === 1 ? ' game' : ' games');
+function card(g) {
+  const c = document.createElement('button');
+  c.className = 'card'; c.title = g.about || g.name;
+  c.style.background = grad(g);
+  const pic = g.thumb || g.art;
+  const img = pic ? `<img class="thumb" loading="lazy" src="${esc(pic)}" alt="" style="object-fit:${g.fit || 'cover'}">` : '';
+  c.innerHTML = `${img}<span class="pl"><span></span></span><p class="nm pix">${esc(g.name)}</p>`;
+  c.onclick = () => openGame(g);
+  return c;
 }
+function more() {
+  const grid = $('#grid'), slice = list.slice(shown, shown + PAGE);
+  for (const g of slice) grid.appendChild(card(g));
+  shown += slice.length;
+  $('#more').hidden = shown >= list.length;
+  $('#count').textContent = list.length ? `showing ${shown} of ${list.length} games` : '';
+}
+function fill() {
+  list = search($('#q').value).filter(inCat); shown = 0;
+  $('#grid').innerHTML = '';
+  if (!list.length) { $('#grid').innerHTML = `<div class="empty">No game matches${$('#q').value ? ` “${esc($('#q').value)}”` : ' that'}.</div>`; $('#more').hidden = true; $('#count').textContent = ''; return; }
+  more();
+}
+$('#more').onclick = more;
 
 // ---- the in-site game player ----
 function openGame(g) {
-  $('#pframe').src = `g/${g.id}/${g.page}`;
+  $('#pframe').src = g.url ? g.url : `g/${g.id}/${g.page}`;
   $('#pname').textContent = g.name;
   $('#player').classList.add('on');
   try { location.hash = g.id; } catch (e) {}
@@ -169,13 +184,17 @@ function cloudBand(baseY, step, color, seed) {
 buildSky($('#sky'));
 
 // ---- load games ----
-fetch('games.json', { cache: 'no-cache' }).then(r => r.json()).then(list => {
-  GAMES = list;
+Promise.all([
+  fetch('games.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : []).catch(() => []),
+  fetch('gm-games.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : []).catch(() => [])
+]).then(([mine, more]) => {
+  GAMES = mine.concat(more);
+  if (!GAMES.length) { $('#grid').innerHTML = '<div class="empty">Could not load the games list.</div>'; return; }
   fill();
   const want = decodeURIComponent(location.hash.slice(1));
   const g = GAMES.find(x => x.id === want);
   if (g) openGame(g);
-}).catch(() => { $('#grid').innerHTML = '<div class="empty">Could not load the games list.</div>'; });
+});
 </script>
 </body>
 </html>
