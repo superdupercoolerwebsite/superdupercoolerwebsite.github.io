@@ -224,9 +224,14 @@ function render(t) {
     } else {
       // no proxy reachable: try the site directly. Many sites refuse to be shown inside another page.
       f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
-      f.src = w;
-      const n = document.createElement('div'); n.className = 'note';
-      n.innerHTML = `<span>${t.direct && PROXY ? 'The proxy is off for this tab. Sites that refuse to be shown inside another page stay blank.' : 'The proxy is offline, so some sites stay blank.'}</span><a href="${esc(w)}" target="_blank" rel="noopener noreferrer">Open in a real tab</a>`;
+      // searches: DuckDuckGo refuses to be shown inside another page, so without the proxy the search goes to Bing,
+      // which allows it
+      const u = w.startsWith(SEARCH) ? 'https://www.bing.com/search?q=' + w.slice(SEARCH.length) : w;
+      if (u !== w) { t.hist[t.at] = u; label(t); }            // so the address bar and tab say where the search really went
+      f.src = u;
+      const n = document.createElement('div'); n.className = 'note'; n.title = 'Click to hide';
+      n.onclick = e => { if (!e.target.closest('a')) n.remove(); }; setTimeout(() => n.remove(), 9000);
+      n.innerHTML = `<span>${t.direct && PROXY ? 'The proxy is off for this tab. Sites that refuse to be shown inside another page stay blank.' : 'The proxy is offline, so some sites stay blank.'}</span><a href="${esc(u)}" target="_blank" rel="noopener noreferrer">Open in a real tab</a>`;
       t.view.appendChild(n);
     }
     if (t === cur) chrome();
