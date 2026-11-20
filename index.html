@@ -175,7 +175,12 @@ let BLOCKED = false;
   i.src = 'https://img.gamemonetize.com/osm7ce5njwn43zxsfdfx0y4eluu9cke9/512x384.jpg?b=' + Date.now();
 })();
 function openGame(g) {
-  if (g.newtab && g.url) { window.open(g.url, '_blank', 'noopener'); return; }   // sites that refuse to be framed open in their own tab
+  if (g.newtab && g.url) {
+    // sites that refuse to be framed open in their own tab; if the real site is blocked (school), use the via-Google fallback
+    const target = (g.alt && g._ok === false) ? g.alt : g.url;
+    window.open(target, '_blank', 'noopener');
+    return;
+  }
   let src = g.url ? g.url : `g/${g.id}/${g.page}`;
   if (g.url && BLOCKED && PROXY) src = PROXY + '/go.html#' + encodeURIComponent(g.url);   // blocked network → go through the proxy
   $('#pframe').src = src;
@@ -253,6 +258,15 @@ Promise.all([
 ]).then(([mine, more]) => {
   GAMES = mine.concat(more);
   if (!GAMES.length) { $('#grid').innerHTML = '<div class="empty">Could not load the games list.</div>'; return; }
+  // for new-tab sites that have a via-Google fallback, check once whether the real site is reachable
+  for (const g of GAMES) {
+    if (!(g.alt && g.probe)) continue;
+    const im = new Image();
+    const t = setTimeout(() => { if (g._ok === undefined) g._ok = false; }, 4000);
+    im.onload = () => { clearTimeout(t); g._ok = true; };
+    im.onerror = () => { clearTimeout(t); g._ok = false; };
+    im.src = g.probe + (g.probe.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+  }
   fill();
 });
 </script>
