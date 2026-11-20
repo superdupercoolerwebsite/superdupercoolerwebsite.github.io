@@ -28,7 +28,7 @@
   .logo { width: min(520px, 88vw); height: auto; image-rendering: pixelated; filter: drop-shadow(0 7px 0 #0000001f) drop-shadow(0 0 34px #ffffff26); }
   .big { width: min(560px, 100%); margin-top: 10px; display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 8px 0 20px; border-radius: 30px; background: #fbfaff; border: 3px solid var(--ink); box-shadow: 0 7px 0 var(--ink2), 0 16px 34px #160f3a66; }
   .big > svg { color: #6b63a6; width: 22px; height: 22px; flex: none; }
-  .big input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; font-size: 16px; color: var(--ink); }
+  .big input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; font-family: "Pixelify Sans", system-ui, sans-serif; font-size: 20px; font-weight: 500; color: var(--ink); }
   .big input::placeholder { color: #8b84b4; }
   .chips { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; width: min(760px, 100%); }
   .chip { height: 34px; padding: 0 15px; border-radius: 10px; background: #ffffffcc; border: 2px solid var(--ink); color: var(--ink); font-size: 14px; font-weight: 700; box-shadow: 0 4px 0 #1d174633; }
@@ -137,19 +137,20 @@ function search(q) {
 }
 const inCat = g => !cat || cat.split(' ').some(w => (g.tags + ' ' + g.id + ' ' + g.name).toLowerCase().includes(w));
 
-function card(g) {
+function card(g, eager) {
   const c = document.createElement('button');
   c.className = 'card'; c.title = g.about || g.name;
   c.style.background = grad(g);
   const pic = g.thumb || g.art;
-  const img = pic ? `<img class="thumb" loading="lazy" src="${esc(pic)}" alt="" style="object-fit:${g.fit || 'cover'}">` : '';
+  // if the picture fails to load (slow, blocked), drop it so the colour tile + name shows cleanly
+  const img = pic ? `<img class="thumb" loading="${eager ? 'eager' : 'lazy'}" src="${esc(pic)}" alt="" style="object-fit:${g.fit || 'cover'}" onerror="this.remove()">` : '';
   c.innerHTML = `${img}<span class="pl"><span></span></span><p class="nm pix">${esc(g.name)}</p>`;
   c.onclick = () => openGame(g);
   return c;
 }
 function more() {
   const grid = $('#grid'), slice = list.slice(shown, shown + PAGE);
-  for (const g of slice) grid.appendChild(card(g));
+  slice.forEach((g, i) => grid.appendChild(card(g, shown + i < 30)));
   shown += slice.length;
   $('#more').hidden = shown >= list.length;
   $('#count').textContent = list.length ? `showing ${shown} of ${list.length} games` : '';
@@ -167,13 +168,11 @@ function openGame(g) {
   $('#pframe').src = g.url ? g.url : `g/${g.id}/${g.page}`;
   $('#pname').textContent = g.name;
   $('#player').classList.add('on');
-  try { location.hash = g.id; } catch (e) {}
   requestAnimationFrame(() => $('#pframe').focus());
 }
 function closeGame() {
   $('#player').classList.remove('on');
   $('#pframe').src = 'about:blank';           // stops the game and its sound
-  try { location.hash = ''; } catch (e) {}
 }
 $('#pback').onclick = closeGame;
 $('#pfull').onclick = () => { const f = $('#pframe'); if (document.fullscreenElement) document.exitFullscreen(); else f.requestFullscreen().then(() => f.focus()).catch(() => {}); };
@@ -242,9 +241,6 @@ Promise.all([
   GAMES = mine.concat(more);
   if (!GAMES.length) { $('#grid').innerHTML = '<div class="empty">Could not load the games list.</div>'; return; }
   fill();
-  const want = decodeURIComponent(location.hash.slice(1));
-  const g = GAMES.find(x => x.id === want);
-  if (g) openGame(g);
 });
 </script>
 </body>
