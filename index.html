@@ -133,7 +133,9 @@ const STORE_PAGE = 'sdcw://store';               // the Extension Store
 const isStore = w => w === STORE_PAGE || w.startsWith(STORE_PAGE + '#');
 const isExtFile = w => !!PROXY && w.startsWith(PROXY + '/uv/service/~ext/');   // an extension's own page (its options)
 const inner = w => w === 'home' || w === EXT_PAGE || isStore(w) || isExtFile(w);
-const SEARCH = 'https://duckduckgo.com/?q=';      // Google answers a proxy with a "prove you are human" test
+// Bing is the one search engine that works both ways: through the proxy, and shown directly when a tab's proxy is off.
+// (Google answers a proxy with a "prove you are human" test; DuckDuckGo refuses to be shown inside another page.)
+const SEARCH = 'https://www.bing.com/search?q=';
 const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } };
 const favOf = u => 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(hostOf(u));
 const sameUrl = (a, b) => { try { return new URL(a).href === new URL(b).href; } catch (e) { return a === b; } };
@@ -224,10 +226,7 @@ function render(t) {
     } else {
       // no proxy reachable: try the site directly. Many sites refuse to be shown inside another page.
       f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
-      // searches: DuckDuckGo refuses to be shown inside another page, so without the proxy the search goes to Bing,
-      // which allows it
-      const u = w.startsWith(SEARCH) ? 'https://www.bing.com/search?q=' + w.slice(SEARCH.length) : w;
-      if (u !== w) { t.hist[t.at] = u; label(t); }            // so the address bar and tab say where the search really went
+      const u = w;
       f.src = u;
       const n = document.createElement('div'); n.className = 'note'; n.title = 'Click to hide';
       n.onclick = e => { if (!e.target.closest('a')) n.remove(); }; setTimeout(() => n.remove(), 9000);
