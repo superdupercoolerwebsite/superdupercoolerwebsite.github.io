@@ -49,10 +49,9 @@
   #box:focus-within { border-color: var(--acc); box-shadow: 0 0 0 3px var(--glow); }
   #chip { display: flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 12px; font-size: 12px; font-weight: 700; white-space: nowrap; flex: none; background: #4ade801c; color: var(--ok); }
   #chip svg { width: 13px; height: 13px; }
-  #chip { cursor: pointer; user-select: none; transition: filter .12s; }
-  #chip:hover { filter: brightness(1.25); }
+  #chip { user-select: none; }
+
   #chip.off { background: var(--panel2); color: var(--dim); cursor: default; }
-  #chip.direct { background: #fbbf2426; color: #fbbf24; }
   #chip[hidden] { display: none; }
   #addr { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; font-size: 14.5px; }
   #addr::placeholder { color: var(--dim); }
@@ -68,55 +67,6 @@
   .view iframe { width: 100%; height: 100%; border: 0; background: #fff; display: block; }
   .note { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 9px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); color: var(--dim); font-size: 13px; box-shadow: 0 10px 30px #000a; display: flex; gap: 10px; align-items: center; }
   .note a { color: var(--acc2); font-weight: 700; text-decoration: none; white-space: nowrap; }
-
-  /* ---- Google results page ---- */
-  .srp { height: 100%; overflow-y: auto; background: #101116; --link: #8fb2ff; --seen: #c39bff; scrollbar-width: thin; scrollbar-color: #3a3d4e transparent; }
-  .shead { display: flex; align-items: center; gap: 22px; padding: 16px clamp(16px, 3vw, 28px) 10px; flex-wrap: wrap; }
-  .slogo img { display: block; height: 46px; width: auto; image-rendering: pixelated; }
-  .sbox { flex: 1 1 320px; max-width: 690px; display: flex; align-items: center; height: 46px; border-radius: 23px; background: var(--panel); border: 1px solid var(--line); padding: 0 6px 0 20px; transition: border-color .15s, box-shadow .15s; }
-  .sbox:focus-within { border-color: var(--acc); box-shadow: 0 0 0 4px var(--glow); }
-  .sbox input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: 0; font-size: 16px; }
-  .sbox button { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; flex: none; color: var(--acc); }
-  .sbox button:hover { background: #ffffff14; }
-  .stabs { display: flex; gap: 4px; padding: 0 clamp(16px, 3vw, 28px); border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
-  .stabs button { padding: 10px 14px 9px; color: var(--dim); font-weight: 600; border-bottom: 3px solid transparent; white-space: nowrap; }
-  .stabs button:hover { color: var(--text); }
-  .stabs button.on { color: var(--acc); border-bottom-color: var(--acc); }
-  .sbody { display: flex; gap: 48px; align-items: flex-start; padding: 22px clamp(16px, 3vw, 28px) 60px; }
-  .smain { flex: 1 1 0; min-width: 0; max-width: 690px; }
-  .side { flex: 0 1 370px; min-width: 0; } .side:empty { display: none; }
-  @media (max-width: 900px) { .sbody { flex-direction: column-reverse; gap: 22px; } .side { flex: none; width: 100%; } }
-  .srp .list { display: flex; flex-direction: column; gap: 28px; }
-  .sempty { color: var(--dim); padding: 30px 0; }
-  .g { min-width: 0; } .g.wide { display: flex; gap: 16px; align-items: flex-start; } .g.wide > div { min-width: 0; flex: 1; }
-  .gpic { position: relative; flex: none; width: 168px; border-radius: 12px; overflow: hidden; background: var(--panel); }
-  .gpic img { display: block; width: 100%; height: 96px; object-fit: cover; }
-  .gpic em { position: absolute; right: 6px; bottom: 6px; padding: 1px 6px; border-radius: 6px; background: #000c; color: #fff; font-style: normal; font-size: 12px; }
-  .gsite { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; margin-bottom: 6px; min-width: 0; }
-  .gsite > span { display: flex; flex-direction: column; min-width: 0; }
-  .gsite b { font-weight: 500; font-size: 14px; }
-  .gsite i { font-style: normal; font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .gfav { width: 28px; height: 28px; border-radius: 50%; background: #fff; padding: 5px; flex: none; }
-  .gt { display: inline-block; font-size: 20px; line-height: 1.3; color: var(--link); text-decoration: none; overflow-wrap: anywhere; }
-  .gt:hover { text-decoration: underline; } a.gt:visited { color: var(--seen); }
-  .g p { margin: 4px 0 0; color: #c3c8dc; line-height: 1.58; overflow-wrap: anywhere; }
-  .when { color: var(--dim); }
-  .ans { padding: 18px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); }
-  .ans img { display: block; width: 100%; max-height: 220px; object-fit: cover; border-radius: 12px; margin-bottom: 14px; }
-  .ans b { display: block; font-size: 24px; margin-bottom: 6px; }
-  .ans p { margin: 4px 0 6px; font-size: 15px; color: #dfe3f5; overflow-wrap: anywhere; }
-  .ans a, .paa a { color: var(--link); text-decoration: none; font-size: 13px; }
-  .paa h3, .rel h3 { margin: 6px 0 10px; font-size: 20px; font-weight: 500; }
-  .paa details { border-top: 1px solid var(--line); padding: 12px 0; } .paa summary { cursor: pointer; font-size: 16px; } .paa p { margin: 8px 0 6px; color: #c3c8dc; line-height: 1.55; }
-  .rel { display: flex; flex-wrap: wrap; gap: 8px; } .rel h3 { width: 100%; }
-  .rel button { padding: 9px 16px; border-radius: 20px; background: var(--panel); border: 1px solid var(--line); }
-  .rel button:hover { border-color: var(--acc); }
-  .list.pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
-  .pic { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: inherit; min-width: 0; }
-  .pic img { width: 100%; height: 130px; object-fit: cover; border-radius: 12px; background: var(--panel); }
-  .pic span { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .pic i { font-style: normal; font-size: 12px; color: var(--dim); }
-  .pager { display: flex; align-items: center; gap: 14px; margin-top: 30px; color: var(--dim); }
-  .pager button { padding: 9px 18px; border-radius: 20px; background: var(--panel); border: 1px solid var(--line); color: var(--link); font-weight: 600; }
 
   /* ---- new tab page: pixel space ---- */
   .start { height: 100%; overflow: hidden; display: flex; flex-direction: column; align-items: center; padding: 9vh 16px 40px; position: relative;
@@ -181,13 +131,9 @@ const EXT_PAGE = 'sdcw://extensions';              // the Extensions page, like 
 const STORE_PAGE = 'sdcw://store';               // the Extension Store
 const isStore = w => w === STORE_PAGE || w.startsWith(STORE_PAGE + '#');
 const isExtFile = w => !!PROXY && w.startsWith(PROXY + '/uv/service/~ext/');   // an extension's own page (its options)
-const GSEARCH = 'sdcw://search?q=';            // the site's own page of Google results
-const isSearch = w => w.startsWith(GSEARCH);
-const qOf = w => { try { return decodeURIComponent(w.slice(GSEARCH.length)); } catch (e) { return w.slice(GSEARCH.length); } };
-const inner = w => w === 'home' || w === EXT_PAGE || isStore(w) || isExtFile(w) || isSearch(w);
-// Bing is the one search engine that works both ways: through the proxy, and shown directly when a tab's proxy is off.
-// (Google answers a proxy with a "prove you are human" test; DuckDuckGo refuses to be shown inside another page.)
-const BING = 'https://www.bing.com/search?q=';   // the stand-in when the Google results page cannot answer
+const inner = w => w === 'home' || w === EXT_PAGE || isStore(w) || isExtFile(w);
+// (Google answers a proxy with a "prove you are human" test, so it cannot be the search engine here.)
+const SEARCH = 'https://duckduckgo.com/?q=';     // searches go to DuckDuckGo, through the proxy like every page
 const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } };
 const favOf = u => 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(hostOf(u));
 const sameUrl = (a, b) => { try { return new URL(a).href === new URL(b).href; } catch (e) { return a === b; } };
@@ -217,7 +163,7 @@ function toUrl(q) {
   if (/^(sdcw|chrome):\/\/extensions\/?$/i.test(q)) return EXT_PAGE;
   if (/^(sdcw:\/\/store|chrome:\/\/webstore)\/?$/i.test(q)) return STORE_PAGE;
   if (!/\s/.test(q) && /^([\w-]+\.)+[a-z]{2,}(:\d+)?(\/.*)?$/i.test(q)) return 'https://' + q;
-  return GSEARCH + encodeURIComponent(q);
+  return SEARCH + encodeURIComponent(q);
 }
 
 /* ---------- tabs ---------- */
@@ -252,17 +198,17 @@ function go(t, where, keep) {
 }
 function label(t) {
   const w = here(t), home = w === 'home', own = inner(w);
-  t.btn.innerHTML = (t.busy ? '<span class="spin"></span>' : `<img class="fav" src="${isSearch(w) ? esc(favOf('https://www.google.com/')) : own ? 'icon.png' : esc(favOf(w))}" alt="" referrerpolicy="no-referrer">`)
-    + `<span class="name">${esc(home ? 'New tab' : isSearch(w) ? qOf(w) + ' - Search' : w === EXT_PAGE ? 'Extensions' : isStore(w) ? 'Extension Store' : isExtFile(w) ? 'Extension page' : t.title || hostOf(w))}</span><span class="x" title="Close tab">&times;</span>`;
+  t.btn.innerHTML = (t.busy ? '<span class="spin"></span>' : `<img class="fav" src="${own ? 'icon.png' : esc(favOf(w))}" alt="" referrerpolicy="no-referrer">`)
+    + `<span class="name">${esc(home ? 'New tab' : w === EXT_PAGE ? 'Extensions' : isStore(w) ? 'Extension Store' : isExtFile(w) ? 'Extension page' : t.title || hostOf(w))}</span><span class="x" title="Close tab">&times;</span>`;
 }
 function render(t) {
   const w = here(t);
   // a tab that already shows a proxied page keeps its wrapper and just points it at the new address (much quicker)
   const live = t.view.querySelector('iframe[data-live]');
-  if (live && PROXY && !t.direct && /^https?:\/\//.test(w)) { live.dataset.first = '1'; t.busy = true; label(t); live.contentWindow.postMessage({ sdcw: 'go', url: w }, PROXY); return; }
+  if (live && PROXY && /^https?:\/\//.test(w)) { live.dataset.first = '1'; t.busy = true; label(t); live.contentWindow.postMessage({ sdcw: 'go', url: w }, PROXY); return; }
   t.view.innerHTML = ''; t.busy = false;
   if (w === 'home') { t.view.appendChild(startPage(t)); label(t); return; }
-  if (isSearch(w)) { t.view.appendChild(resultsPage(t, qOf(w))); label(t); return; }
+
   const f = document.createElement('iframe');
   f.allow = 'fullscreen; autoplay';
   f.referrerPolicy = 'no-referrer';
@@ -274,19 +220,17 @@ function render(t) {
       if (!PROXY) { f.remove(); t.busy = false; label(t); const n = document.createElement('div'); n.className = 'note'; n.textContent = 'Extensions need the proxy, and it is offline right now.'; t.view.appendChild(n); return; }
       f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
       f.src = w === EXT_PAGE ? PROXY + '/ext/boot.html' : isStore(w) ? PROXY + '/ext/boot.html?to=store' + w.slice(STORE_PAGE.length) : w;
-    } else if (PROXY && !t.direct) {
+    } else if (PROXY) {
       // scripts and forms work; no downloads, no camera/mic/location, no taking over this window
       f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
       f.dataset.proxied = '1'; f.dataset.first = '1';
       f.src = PROXY + '/go.html#' + encodeURIComponent(w);
     } else {
-      // no proxy reachable: try the site directly. Many sites refuse to be shown inside another page.
-      f.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups';
-      const u = w;
-      f.src = u;
-      const n = document.createElement('div'); n.className = 'note'; n.title = 'Click to hide';
-      n.onclick = e => { if (!e.target.closest('a')) n.remove(); }; setTimeout(() => n.remove(), 9000);
-      n.innerHTML = `<span>${t.direct && PROXY ? 'The proxy is off for this tab. Sites that refuse to be shown inside another page stay blank.' : 'The proxy is offline, so some sites stay blank.'}</span><a href="${esc(u)}" target="_blank" rel="noopener noreferrer">Open in a real tab</a>`;
+      // The proxy is always on: nothing is loaded without it. If it cannot be reached, say so instead.
+      f.remove(); t.busy = false; label(t);
+      const n = document.createElement('div'); n.className = 'note';
+      n.innerHTML = '<span>The proxy cannot be reached right now, and pages only open through it.</span><a href="#">Try again</a>';
+      n.querySelector('a').onclick = e => { e.preventDefault(); location.reload(); };
       t.view.appendChild(n);
     }
     if (t === cur) chrome();
@@ -318,17 +262,15 @@ addEventListener('message', e => {
 function chrome() {
   if (!cur) return;
   const w = here(cur), home = w === 'home', own = inner(w);
-  if (document.activeElement !== addr) addr.value = home ? '' : isSearch(w) ? qOf(w) : isStore(w) ? STORE_PAGE : w;
+  if (document.activeElement !== addr) addr.value = home ? '' : isStore(w) ? STORE_PAGE : w;
   $('#back').disabled = cur.at <= 0;
   $('#fwd').disabled = cur.at >= cur.hist.length - 1;
   $('#reload').disabled = home; $('#real').disabled = own;
-  // the chip is also the switch: click it to turn the proxy off or on for this tab (new tabs start with it on)
-  chip.hidden = own && !home && !isSearch(w);
+  chip.hidden = own;
   chip.classList.toggle('off', !PROXY);
-  chip.classList.toggle('direct', !!PROXY && !!cur.direct);
-  chip.querySelector('span').textContent = !PROXY ? 'Direct' : cur.direct ? 'Proxy off' : 'Protected';
-  chip.title = !PROXY ? 'The proxy is offline, so this page is loaded directly.' : cur.direct ? 'The proxy is off for this tab: pages load straight from your own connection, and extensions do not run. Click to turn it back on.' : 'Opened through the proxy. Downloads are blocked. Click to turn the proxy off for this tab.';
-  document.title = (home ? '' : (isSearch(w) ? qOf(w) + ' - Search' : w === EXT_PAGE ? 'Extensions' : isStore(w) ? 'Extension Store' : cur.title || hostOf(w)) + ' - ') + 'superdupercoolerwebsite';
+  chip.querySelector('span').textContent = PROXY ? 'Protected' : 'Proxy offline';
+  chip.title = PROXY ? 'Opened through the proxy. Downloads are blocked. Avoid typing passwords for important accounts here.' : 'The proxy cannot be reached, so pages cannot open.';
+  document.title = (home ? '' : (w === EXT_PAGE ? 'Extensions' : isStore(w) ? 'Extension Store' : cur.title || hostOf(w)) + ' - ') + 'superdupercoolerwebsite';
 }
 
 /* ---------- new tab page ---------- */
@@ -345,8 +287,8 @@ function startPage(t) {
   proxyReady.then(() => {
     const b = el.querySelector('.buddy');
     if (!b) return;
-    b.innerHTML = PROXY ? '😎 <b>Protected</b>' : '😎 <b class="off">Direct</b>';
-    b.title = PROXY ? 'Pages open through the proxy. Downloads are blocked.' : 'The proxy is offline, so pages load directly and some stay blank.';
+    b.innerHTML = PROXY ? '😎 <b>Protected</b>' : '😎 <b class="off">Proxy offline</b>';
+    b.title = PROXY ? 'Pages open through the proxy. Downloads are blocked.' : 'The proxy cannot be reached, so pages cannot open right now.';
   });
   return el;
 }
@@ -425,64 +367,9 @@ function cloudBank(color, baseY, rise) {
   return `<path d="${d}L1200 700Z" fill="${color}"/>`;
 }
 
-/* ---------- Google results page ----------
-   Google answers a proxy with a "prove you are human" test, so searches cannot go to google.com through the proxy.
-   Instead the site asks its small search server (which gets Google's results) and draws the results itself.
-   Every result then opens in the tab the normal way: through the proxy, or directly if the tab's proxy is off.
-   If the search server cannot answer (for instance its allowance ran out), the search goes to Bing instead. */
-const GAPI = 'https://sdcw-search.pages.dev/', SEEN = new Map();
-function resultsPage(t, q) {
-  const el = document.createElement('div'); el.className = 'srp';
-  el.innerHTML = `<div class="shead"><button class="slogo" title="Home" type="button"><img src="logo.png" alt="superdupercoolerwebsite"></button>
-      <form class="sbox"><input value="${esc(q)}" spellcheck="false" autocomplete="off" aria-label="Search"><button type="submit" title="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.500-3.500"/></svg></button></form></div>
-    <div class="stabs"><button data-k="" class="on" type="button">All</button><button data-k="images" type="button">Images</button><button data-k="videos" type="button">Videos</button><button data-k="news" type="button">News</button></div>
-    <div class="sbody"><div class="smain"><div class="list"></div><div class="pager"></div></div><aside class="side"></aside></div>`;
-  const list = el.querySelector('.list'), side = el.querySelector('.side'), pager = el.querySelector('.pager'), tabsRow = el.querySelector('.stabs');
-  let kind = '', page = 1;
-  const http = u => /^https?:\/\//.test(u || '');
-  const crumb = u => { try { const x = new URL(u); return x.hostname.replace(/^www\./, '') + x.pathname.split('/').filter(Boolean).slice(0, 2).map(p => ' › ' + decodeURIComponent(p).slice(0, 24)).join(''); } catch (e) { return u; } };
-  const link = (cls, href, html) => `<a class="${cls}" href="${esc(href)}" rel="noopener noreferrer">${html}</a>`;
-  const none = msg => { list.className = 'list'; list.innerHTML = `<div class="sempty">${msg}</div>`; };
-  el.querySelector('.slogo').onclick = () => go(t, 'home');
-  // a result opens in this tab; Ctrl-click or middle-click opens it in a new tab
-  const open = e => { const a = e.target.closest('a[href]'); if (!a || !/^https?:/.test(a.href)) return; if (e.type === 'auxclick' && e.button !== 1) return; e.preventDefault(); if (e.type === 'auxclick' || e.ctrlKey || e.metaKey) { const keep = t; newTab(a.href); show(keep); } else go(t, a.href); };
-  el.addEventListener('click', open); el.addEventListener('auxclick', open);
-  el.querySelector('.sbox').onsubmit = e => { e.preventDefault(); const v = e.target.querySelector('input').value.trim(); if (v && v !== q) go(t, toUrl(v)); };
-  // answers already fetched this visit are kept, so going Back to a search does not use up another one
-  const ask = () => { const k = kind + '|' + page + '|' + q; if (SEEN.has(k)) return Promise.resolve(SEEN.get(k));
-    return fetch(GAPI + '?q=' + encodeURIComponent(q) + (kind ? '&t=' + kind : '') + (page > 1 ? '&p=' + page : '')).then(r => r.json().then(j => { if (!r.ok || !j.results) throw new Error(j.error || 'search server said ' + r.status); SEEN.set(k, j); return j; })); };
-  const run = () => {
-    list.className = 'list'; list.innerHTML = '<div class="sempty">Searching…</div>'; side.innerHTML = ''; pager.innerHTML = ''; el.scrollTop = 0;
-    ask().then(j => {
-      if (!el.isConnected) return;
-      const ok = j.results.filter(x => http(x.url));
-      if (!ok.length) return none(page > 1 ? 'No more results.' : `Nothing found for "${esc(q)}".`);
-      const fav = x => `<img class="gfav" src="https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(x.site)}" alt="" referrerpolicy="no-referrer">`;
-      if (kind === 'images') { list.className = 'list pics'; list.innerHTML = ok.filter(x => x.thumb).map(x => link('pic', x.url, `<img src="${esc(x.thumb)}" alt="${esc(x.title)}" loading="lazy" referrerpolicy="no-referrer"><span>${esc(x.title)}</span><i>${esc(x.site)}</i>`)).join(''); }
-      else {
-        list.innerHTML = ok.map(x => `<div class="g${x.thumb && kind ? ' wide' : ''}">${x.thumb && kind ? link('gpic', x.url, `<img src="${esc(x.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer">${x.extra && kind === 'videos' ? `<em>${esc(x.extra)}</em>` : ''}`) : ''}<div>${link('gsite', x.url, `${fav(x)}<span><b>${esc(x.site)}</b><i>${esc(crumb(x.url))}</i></span>`)}${link('gt', x.url, esc(x.title))}<p>${x.extra && kind === 'news' ? `<span class="when">${esc(x.extra)} — </span>` : ''}${esc(x.text)}</p></div></div>`).join('');
-        const an = j.answer;
-        if (an && an.text && page === 1) side.innerHTML = `<div class="ans">${an.thumb ? `<img src="${esc(an.thumb)}" alt="" referrerpolicy="no-referrer">` : ''}${an.title ? `<b>${esc(an.title)}</b>` : ''}<p>${esc(an.text)}</p>${http(an.url) ? link('', an.url, esc(crumb(an.url))) : ''}</div>`;
-        if (j.paa && j.paa.length && page === 1) list.insertAdjacentHTML('beforeend', `<div class="paa"><h3>People also ask</h3>${j.paa.map(p => `<details><summary>${esc(p.question)}</summary><p>${esc(p.text)}</p>${http(p.url) ? link('', p.url, esc(p.title || crumb(p.url))) : ''}</details>`).join('')}</div>`);
-        if (j.related && j.related.length) { const r = document.createElement('div'); r.className = 'rel'; r.innerHTML = '<h3>Related searches</h3>' + j.related.map(x => `<button type="button">${esc(x)}</button>`).join(''); r.onclick = e => { const b = e.target.closest('button'); if (b) go(t, toUrl(b.textContent)); }; list.appendChild(r); }
-      }
-      pager.innerHTML = `${page > 1 ? '<button data-d="-1" type="button">‹ Previous</button>' : ''}<span>Page ${page}</span><button data-d="1" type="button">Next ›</button>`;
-    }).catch(e => {
-      if (!el.isConnected) return;
-      console.warn('Google results failed:', e && e.message);
-      if (!kind && page === 1) { t.hist[t.at] = BING + encodeURIComponent(q); render(t); if (t === cur) chrome(); }      // the stand-in that works with and without the proxy
-      else none('Could not get those results right now.');
-    });
-  };
-  tabsRow.onclick = e => { const b = e.target.closest('button'); if (!b || b.dataset.k === kind) return; kind = b.dataset.k; page = 1; for (const o of tabsRow.children) o.classList.toggle('on', o === b); run(); };
-  pager.onclick = e => { const b = e.target.closest('button'); if (!b) return; page = Math.max(1, page + +b.dataset.d); run(); };
-  run();
-  return el;
-}
-
 /* ---------- toolbar ---------- */
 $('#newtab').onclick = () => newTab();
-chip.onclick = () => { if (!PROXY || !cur) return; cur.direct = !cur.direct; if (here(cur) === 'home' || isSearch(here(cur))) chrome(); else go(cur, here(cur), true); };
+
 $('#back').onclick = () => { if (cur.at > 0) { cur.at--; go(cur, here(cur), true); } };
 $('#fwd').onclick = () => { if (cur.at < cur.hist.length - 1) { cur.at++; go(cur, here(cur), true); } };
 $('#reload').onclick = () => go(cur, here(cur), true);
