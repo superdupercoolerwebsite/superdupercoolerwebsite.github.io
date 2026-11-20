@@ -175,6 +175,7 @@ let BLOCKED = false;
   i.src = 'https://img.gamemonetize.com/osm7ce5njwn43zxsfdfx0y4eluu9cke9/512x384.jpg?b=' + Date.now();
 })();
 function openGame(g) {
+  if (g.newtab && g.url) { window.open(g.url, '_blank', 'noopener'); return; }   // sites that refuse to be framed open in their own tab
   let src = g.url ? g.url : `g/${g.id}/${g.page}`;
   if (g.url && BLOCKED && PROXY) src = PROXY + '/go.html#' + encodeURIComponent(g.url);   // blocked network → go through the proxy
   $('#pframe').src = src;
